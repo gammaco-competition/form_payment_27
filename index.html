@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>แบบฟอร์มยืนยันสลิปชำระเงิน | Global Robotics Games 2026</title>
+  
+  <!-- Fonts & Frameworks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    :root {
+      --primary-green: #006633;
+      --primary-dark: #004d26;
+      --bg-gray: #f3f5fa;
+      --text-dark: #2c3e50;
+      --text-muted: #687385;
+      --card-bg: #ffffff;
+      --inner-card-bg: #f8faf9;
+      --border-color: #e1ece7;
+      --amount-bg: #fff0f0;
+      --amount-border: #ffd6d6;
+      --amount-text: #d9534f;
+    }
+    * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
+    body { margin: 0; padding: 24px 14px 40px; background: var(--bg-gray); color: var(--text-dark); }
+    .page { width: 100%; max-width: 680px; margin: 0 auto; }
+    
+    .banner { overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.06); text-align: center; }
+    .heading { padding: 20px 15px; text-align: center; color: #fff; background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%); }
+    .heading h1 { margin: 0; font-size: 1.35rem; font-weight: 600; }
+    .heading p { margin: 5px 0 0; font-size: .92rem; opacity: .9; }
+    .banner img { display: block; width: auto; max-height: 120px; margin: 12px auto; object-fit: contain; background: #fff; }
+    .card { margin-top: 18px; padding: 22px; background: var(--card-bg); border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.05); }
+    .card-modern { background: #ffffff; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.05); padding: 22px; margin-top: 18px; }
+    .section-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: var(--primary-green);
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-section-header {
+      font-weight: 600;
+      font-size: 0.98rem;
+      color: #222;
+      margin-top: 15px;
+      margin-bottom: 12px;
+    }
+    .key-data-card {
+      background: var(--inner-card-bg);
+      border: 1px solid var(--border-color);
+      border-left: 5px solid var(--primary-green);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .data-item { display: flex; flex-direction: column; gap: 4px; }
+    .data-item.full-width { grid-column: 1 / -1; }
+    .info-label { font-size: 0.85rem; color: var(--text-muted); }
+    .info-value { font-size: 0.98rem; font-weight: 600; color: var(--text-dark); word-break: break-word; }
+    .team-id-badge {
+      background: var(--primary-green);
+      color: #ffffff;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      display: inline-block;
+      width: fit-content;
+    }
+    .amount-card {
+      background: var(--amount-bg);
+      border: 1px solid var(--amount-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: right;
+    }
+    .amount-label { font-size: 0.88rem; color: var(--amount-text); display: block; margin-bottom: 2px; }
+    .amount-value { font-size: 1.75rem; font-weight: 700; color: var(--amount-text); line-height: 1.2; }
+    .amount-value small { font-size: 1rem; font-weight: 500; margin-left: 4px; }
+    .pay-option {
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pay-option:hover, .btn-check:checked + .pay-option {
+      border-color: var(--primary-green);
+      background-color: #f4f9f6;
+    }
+    .upload-zone {
+      border: 2px dashed var(--primary-green);
+      border-radius: 15px;
+      padding: 25px 15px;
+      text-align: center;
+      background: #fcfdfe;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .upload-zone:hover { background: #f0f7f3; }
+    .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 15px; }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 30px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      width: 100%;
+      box-shadow: 0 6px 18px rgba(0, 102, 51, 0.25);
+      margin-top: 20px;
+      transition: all 0.2s;
+    }
+    .btn-submit:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 102, 51, 0.35); }
+    footer { padding: 20px 8px 0; text-align: center; color: #8b93a2; font-size: .82rem; font-weight: 500; }
+    .form-check-input:checked {
+      background-color: var(--primary-green);
+      border-color: var(--primary-green);
+    }
+    .cursor-pointer { cursor: pointer; }
+    .extra-teams-scroll-box {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: #ffffff;
+    }
+    .extra-team-item {
+      transition: background-color 0.15s ease;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .extra-team-item:last-child { border-bottom: none; }
+    .extra-team-item:hover { background-color: #f4f9f6 !important; }
+    .summary-table-card {
+      border: 1px solid #d0e7d9;
+      border-left: 5px solid var(--primary-green);
+      background: #ffffff;
+      border-radius: 12px;
+    }
+    @media (max-width: 576px) {
+      .card, .card-modern { padding: 18px; }
+      .data-grid { grid-template-columns: 1fr; gap: 12px; }
+      .amount-value { font-size: 1.5rem; }
+    }
+    .version-badge-floating {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 9999;
+      background: rgba(0, 102, 51, 0.9);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+
+  <script>
+    // 📍 เปลี่ยน URL ตรงนี้เป็น Exec URL ของ Google Apps Script Web App ของคุณได้เลยครับ
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
+    
+    let serverData = null;
+    let serverTaxCompanies = [];
+    
+    try {
+      serverData = <?!= JSON.stringify(data || null) ?>;
+      serverTaxCompanies = <?!= JSON.stringify(taxCompanies || []) ?>;
+    } catch(e) {
+      serverData = null;
+      serverTaxCompanies = [];
+    }
+  </script>
+</head>
+<body>
+  <main class="page">
+    
+    <div class="banner">
+      <header class="heading">
+        <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
+        <p id="txtEventSub">Global Robotics Games 2026</p>
+      </header>
+      <img id="imgBanner" src="" alt="Banner" onerror="this.style.display='none'">
+    </div>
+
+    <div id="formContainer">
+      <!-- Dynamic Form / Paid Card Container -->
+    </div>
+
+    <footer>Gammaco (Thailand) Co.,LTD.</footer>
+  </main>
+
+  <script>
+    let appData = {};
+    let taxCompaniesData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (serverData && serverData.success) {
+        appData = serverData;
+        taxCompaniesData = serverTaxCompanies || [];
+        renderUI();
+      } else {
+        fetchDataFromApi();
+      }
+    });
+
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param) || '';
+    }
+
+    function fetchDataFromApi() {
+      const teamId = getQueryParam('teamId');
+      const userId = getQueryParam('userId');
+
+      Swal.fire({
+        title: 'กำลังโหลดข้อมูล...',
+        text: 'กรุณารอสักครู่ ระบบกำลังดึงข้อมูลทีม',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const fetchUrl = `${GAS_WEB_APP_URL}?action=getData&teamId=${encodeURIComponent(teamId)}&userId=${encodeURIComponent(userId)}`;
+
+      fetch(fetchUrl)
+        .then(res => res.json())
+        .then(res => {
+          Swal.close();
+          if (res && res.data && res.data.success) {
+            appData = res.data;
+            taxCompaniesData = res.taxCompanies || [];
+            if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
+            if (res.bannerUrl) document.getElementById('imgBanner').src = res.bannerUrl;
+            renderUI();
+          } else {
+            Swal.fire('เกิดข้อผิดพลาด', res?.data?.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
+          }
+        })
+        .catch(err => {
+          Swal.close();
+          console.error('Fetch error:', err);
+          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่อีกครั้ง', 'error');
+        });
+    }
+
+    function renderUI() {
+      const container = document.getElementById('formContainer');
+      if (!container) return;
+
+      if (appData.isPaid) {
+        renderPaidStatusUI(container);
+      } else {
+        renderFormUI(container);
+      }
+    }
+
+    function renderPaidStatusUI(container) {
+      let teamsListHtml = '';
+      if (appData.paidTeamsList && appData.paidTeamsList.length > 0) {
+        appData.paidTeamsList.forEach(team => {
+          const st = String(team.statusStamp || 'Waiting').trim();
+          let badgeHtml = '';
+          if (st.toLowerCase() === 'confirm' || st === 'ชำระเงินเรียบร้อยแล้ว') {
+            badgeHtml = `<span class="badge bg-success text-white px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i>Confirm</span>`;
+          } else if (st.toLowerCase() === 'cancel' || st.toLowerCase() === 'reject' || st === 'ยกเลิก' || st === 'ไม่ผ่าน') {
+            badgeHtml = `<span class="badge bg-danger text-white px-2 py-1"><i class="fa-solid fa-circle-xmark me-1"></i>Cancel</span>`;
+          } else {
+            badgeHtml = `<span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Waiting</span>`;
+          }
+
+          teamsListHtml += `
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+              <div class="me-2 text-truncate text-start">
+                <div>
+                  <span class="badge bg-secondary me-1">${team.teamId}</span>
+                  <strong class="text-dark small">${team.teamName}</strong>
+                </div>
+                <div class="text-muted" style="font-size: 0.78rem;">
+                  ${team.categoryText || '-'} | ${team.institution || '-'}
+                </div>
+              </div>
+              <div>${badgeHtml}</div>
+            </div>
+          `;
+        });
+      }
+
+      container.innerHTML = `
+        <div class="card p-4 text-center border-success bg-white rounded-4 my-4 shadow-sm">
+          <div class="mb-3">
+            <i class="fa-solid fa-circle-check text-success" style="font-size: 3.5rem;"></i>
+          </div>
+          <h4 class="fw-bold text-success mb-2">ยืนยันสลิปชำระเงินเรียบร้อยแล้ว</h4>
+          <p class="text-secondary mb-3 fs-6">
+            รายการทีมทั้งหมดที่คุณได้ทำรายการยืนยันสลิปชำระเงิน
+          </p>
+
+          <div class="p-3 bg-light rounded-3 text-start mb-3 w-100 border">
+            <div class="small text-muted mb-2">
+              <strong><i class="fa-solid fa-list-check me-1"></i> รายการทีมและสถานะการชำระเงิน (${appData.paidTeamsList ? appData.paidTeamsList.length : 1} ทีม) :</strong>
+            </div>
+            <div class="list-group list-group-flush rounded-2 border">
+              ${teamsListHtml}
+            </div>
+          </div>
+          <div class="text-primary small fw-medium">
+            <i class="fa-solid fa-circle-info me-1"></i> ท่านสามารถปิดหน้าต่างเบราว์เซอร์นี้ได้ทันที
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFormUI(container) {
+      const isNoTeamMode = appData.noTeamIdMode;
+
+      let otherTeamsRowsHtml = '';
+      if (appData.otherTeams && appData.otherTeams.length > 0) {
+        appData.otherTeams.forEach((team, index) => {
+          otherTeamsRowsHtml += `
+            <div class="form-check p-2 extra-team-item d-flex align-items-center justify-content-between"
+                 data-category="${team.categoryText}"
+                 data-searchtext="${team.teamId} ${team.teamName} ${team.institution}">
+              <div class="d-flex align-items-center gap-2">
+                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox" 
+                       id="extraTeam_${index}" 
+                       data-teamid="${team.teamId}" 
+                       data-teamname="${team.teamName}" 
+                       data-category="${team.categoryText}"
+                       data-institution="${team.institution}"
+                       data-amount="${team.amountValue}" 
+                       onchange="calculateTotalAmount()">
+                <label class="form-check-label text-dark cursor-pointer ms-1 small" for="extraTeam_${index}">
+                  <span class="badge bg-secondary me-1">${team.teamId}</span> <strong>${team.teamName}</strong>
+                  <div class="text-muted" style="font-size: 0.78rem;">${team.categoryText} - ${team.institution}</div>
+                </label>
+              </div>
+              <div class="text-end fw-bold text-success pe-2 small" style="white-space: nowrap;">
+                +${team.formattedAmount} ฿
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        otherTeamsRowsHtml = `<div class="text-muted small text-center py-2"><i class="fa-solid fa-circle-info me-1"></i> ไม่พบรายการทีมในระบบ</div>`;
+      }
+
+      container.innerHTML = `
+        <form id="paymentSubmitForm" onsubmit="handleFormSubmit(event)">
+          <!-- Section 1: ข้อมูลทีม -->
+          <section class="card">
+            <div class="section-title">
+              <i class="fa-solid fa-users-viewfinder fs-5"></i> ข้อมูลทีมที่ต้องการชำระเงิน
+            </div>
+
+            ${!isNoTeamMode ? `
+              <div class="key-data-card" id="keyDataCard">
+                <div class="data-grid">
+                  <div class="data-item">
+                    <span class="info-label">Key Data / ทีมไอดี (ทีมหลัก)</span>
+                    <div><span class="team-id-badge">${appData.teamId}</span></div>
+                  </div>
+                  <div class="data-item">
+                    <span class="info-label">รุ่นอายุ / หมวดหมู่ (Category)</span>
+                    <div class="info-value">${appData.categoryText || '-'}</div>
+                  </div>
+                  <div class="data-item full-width">
+                    <span class="info-label">ชื่อทีม (Team Name)</span>
+                    <div class="info-value">${appData.teamName}</div>
+                  </div>
+                  <div class="data-item full-width">
+                    <span class="info-label">สถาบัน / หน่วยงาน (Institution)</span>
+                    <div class="info-value">${appData.institution}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3 p-3 bg-light border rounded-3" id="toggleExtraTeamsWrapper">
+                <div class="form-check m-0">
+                  <input class="form-check-input cursor-pointer" type="checkbox" id="toggleExtraTeams" onchange="toggleExtraTeamsSection()">
+                  <label class="form-check-label fw-semibold text-success small cursor-pointer" for="toggleExtraTeams">
+                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม 
+                    <span class="text-muted fw-normal ms-1">(พบอีก ${appData.otherTeams ? appData.otherTeams.length : 0} ทีมของคุณในระบบ)</span>
+                  </label>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- ตารางเลือกทีม -->
+            <div id="extraTeamsContainer" class="${isNoTeamMode ? '' : 'd-none'} p-3 bg-light border rounded-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small text-muted fw-semibold" id="txtSelectTeamHeader">${isNoTeamMode ? 'โปรดเลือกรายการทีมที่ต้องการชำระเงิน:' : 'เลือกทีมที่ต้องการรวมสลิปชำระเงิน:'}</span>
+                <span class="badge bg-success text-white" id="selectedCountBadge">เลือกแล้ว 0 ทีม</span>
+              </div>
+              
+              <div class="row g-2 mb-2">
+                <div class="col-12 col-sm-6">
+                  <select id="filterCategorySelect" class="form-select form-select-sm rounded-3" onchange="filterTeams()">
+                    <option value="">-- ทุกหมวดหมู่ --</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <input type="text" id="searchTeamInput" class="form-control form-control-sm rounded-3" placeholder="🔍 ค้นหาชื่อทีม / ID..." onkeyup="filterTeams()">
+                </div>
+              </div>
+              <div class="extra-teams-scroll-box p-1">
+                ${otherTeamsRowsHtml}
+              </div>
+            </div>
+
+            <div id="selectedTeamsTableCard" class="summary-table-card p-3 mb-3 d-none">
+              <div class="fw-semibold text-success mb-2 small d-flex justify-content-between align-items-center">
+                <span><i class="fa-solid fa-table-list me-1"></i> รายการทีมทั้งหมดที่จะชำระเงินรวม (<span id="summaryTeamCountText">0</span> ทีม) :</span>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered table-hover align-middle mb-0" style="font-size: 0.84rem;">
+                  <thead class="table-light text-secondary">
+                    <tr class="text-center">
+                      <th style="width: 40px;">#</th>
+                      <th style="width: 100px;">Team ID</th>
+                      <th style="width: 200px;">Team Name</th>
+                      <th>Institution</th>
+                    </tr>
+                  </thead>
+                  <tbody id="selectedTeamsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="amount-card">
+              <span class="amount-label" id="amountSummaryLabel">ยอดเงินที่ต้องชำระทั้งหมด</span>
+              <div class="amount-value" id="totalAmountDisplay">${appData.formattedAmount || '0'} <small>บาท</small></div>
+            </div>
+          </section>
+
+          <!-- Section 2: ช่องทางชำระเงิน -->
+          <div class="card-modern">
+            <div class="section-title">
+              <i class="fa-solid fa-wallet fs-5"></i> เลือกช่องทางชำระเงิน
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-12 col-sm-6">
+                <input type="radio" class="btn-check" name="payMethod" id="payMethodQr" value="qr" checked onchange="togglePayMethod()">
+                <label class="pay-option w-100" for="payMethodQr">
+                  <i class="fa-solid fa-qrcode fs-3 text-success"></i>
+                  <div>
+                    <div class="fw-semibold">สแกน QR Code</div>
+                    <div class="small text-muted">รองรับทุกแอปธนาคาร</div>
+                  </div>
+                </label>
+              </div>
+              <div class="col-12 col-sm-6">
+                <input type="radio" class="btn-check" name="payMethod" id="payMethodBank" value="bank" onchange="togglePayMethod()">
+                <label class="pay-option w-100" for="payMethodBank">
+                  <i class="fa-solid fa-building-columns fs-3 text-success"></i>
+                  <div>
+                    <div class="fw-semibold">โอนผ่านบัญชีธนาคาร</div>
+                    <div class="small text-muted">โอนผ่านเลขบัญชี</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div id="qrSection" class="text-center p-3 bg-light rounded-3">
+              <img id="qrImage" src="http://gammaco.co.th/marketingform/wp-content/uploads/2025/04/Blank.png" alt="QR Code" class="img-fluid rounded-3" style="max-width: 220px;">
+              <div class="small text-muted mt-2">สแกนชำระเงินผ่านระบบ PromptPay</div>
+            </div>
+            <div id="bankSection" class="p-3 bg-light rounded-3 d-none">
+              <div class="d-flex align-items-center gap-3">
+                <img src="https://img2.pic.in.th/270746805_10161735880783916_2146008855314507829_n.jpeg" alt="Krung Thai Bank" style="width: 70px; height: auto; margin-top: 10px;">
+                <div>
+                  <div class="fw-bold">ธนาคารกรุงไทย</div>
+                  <div>ชื่อบัญชี: บริษัท แกมมาโก้ (ประเทศไทย) จำกัด</div>
+                  <div class="fw-bold text-success fs-5">เลขที่บัญชี: 980-2-99645-9</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: อัปโหลดสลิป -->
+          <div class="card-modern">
+            <div class="section-title">
+              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)
+            </div>
+            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2"></i>
+              <div class="fw-semibold">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
+              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG</div>
+              <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="previewFile(this)">
+              <img id="previewImage" class="preview-img d-none" alt="Slip Preview">
+            </div>
+          </div>
+
+          <!-- Section 4: ข้อมูลติดต่อ & การออกเอกสาร -->
+          <div class="card-modern">
+            <div class="form-section-header">
+              <i class="fa-solid fa-caret-right text-dark"></i> ข้อมูลติดต่อ :
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label class="form-label small text-dark"><i class="fa-solid fa-user me-1"></i> ชื่อ-สกุล<span class="text-danger">*</span></label>
+                <input type="text" id="contactName" class="form-control rounded-3" placeholder="ชื่อ-นามสกุล" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label small text-dark"><i class="fa-solid fa-phone me-1"></i> เบอร์โทรศัพท์<span class="text-danger">*</span></label>
+                <input type="tel" id="contactPhone" class="form-control rounded-3" placeholder="เบอร์โทรศัพท์ที่สามารถติดต่อได้" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label small text-dark"><i class="fa-brands fa-line me-1"></i> ไลน์ไอดี</label>
+                <input type="text" id="contactLine" class="form-control rounded-3" placeholder="Line ID">
+              </div>
+            </div>
+
+            <div class="form-section-header mt-4">
+              <i class="fa-solid fa-caret-right text-dark"></i> การออกเอกสาร :
+            </div>
+            <div class="d-flex gap-4 flex-wrap mb-2">
+              <div class="form-check">
+                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docTax" value="ใบกำกับภาษี" onchange="toggleDocForm()">
+                <label class="form-check-label cursor-pointer" for="docTax">ใบกำกับภาษี</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docBill" value="ใบเสร็จรับเงิน" onchange="toggleDocForm()">
+                <label class="form-check-label cursor-pointer" for="docBill">ใบเสร็จรับเงิน</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docNone" value="ไม่ต้องการ" onchange="toggleDocForm()" checked>
+                <label class="form-check-label cursor-pointer" for="docNone">ไม่ต้องการ</label>
+              </div>
+            </div>
+
+            <div id="taxHistorySection" class="mt-3 d-none">
+              <div class="form-section-header">
+                <i class="fa-solid fa-caret-right text-dark"></i> บริษัทของท่าน เคยออกใบกำกับภาษีกับทางบริษัทฯ แล้วหรือไม่
+              </div>
+              <div class="d-flex gap-4 flex-wrap mb-3">
+                <div class="form-check">
+                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyYes" value="เคย" onchange="toggleDocForm()">
+                  <label class="form-check-label cursor-pointer" for="historyYes">เคย</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyNo" value="ไม่เคย" onchange="toggleDocForm()" checked>
+                  <label class="form-check-label cursor-pointer" for="historyNo">ไม่เคย</label>
+                </div>
+              </div>
+            </div>
+
+            <div id="companyInfoSection" class="row g-3 mt-1 d-none">
+              <div class="col-12 col-md-6">
+                <label class="form-label small text-dark"><i class="fa-regular fa-building me-1"></i> ชื่อบริษัท / หน่วยงาน</label>
+                <div id="companyContainer">
+                  <input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">
+                </div>
+              </div>
+              <div class="col-12 col-md-6" id="taxIdBox">
+                <label class="form-label small text-dark"><i class="fa-regular fa-id-card me-1"></i> เลขประจำตัวผู้เสียภาษี</label>
+                <input type="text" id="taxId" class="form-control rounded-3" maxlength="20" placeholder="ระบุเลขที่ผู้เสียภาษี">
+              </div>
+              <div class="col-12" id="taxAddressBox">
+                <label class="form-label small text-dark"><i class="fa-solid fa-map-location-dot me-1"></i> ที่อยู่</label>
+                <textarea id="taxAddress" class="form-control rounded-3" rows="2" placeholder="โปรดระบุที่อยู่"></textarea>
+              </div>
+            </div>
+
+            <div id="deliverySection" class="mt-4 d-none">
+              <div class="form-section-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span><i class="fa-solid fa-house me-1"></i> การจัดส่งเอกสาร</span>
+                <div class="form-check m-0">
+                  <input class="form-check-input cursor-pointer" type="checkbox" id="copyContactInfo" onchange="copyContactToRecipient()">
+                  <label class="form-check-label text-success fw-semibold small cursor-pointer" for="copyContactInfo">
+                    <i class="fa-solid fa-copy me-1"></i> ใช้ชื่อและเบอร์โทรตามข้อมูลติดต่อด้านบน
+                  </label>
+                </div>
+              </div>
+              <div class="d-flex gap-4 flex-wrap mb-3">
+                <div class="form-check">
+                  <input class="form-check-input cursor-pointer" type="radio" name="deliveryType" id="delDocAddr" value="จัดส่งตามที่อยู่เอกสาร" onchange="toggleDocForm()" checked>
+                  <label class="form-check-label cursor-pointer" for="delDocAddr">จัดส่งตามที่อยู่เอกสาร</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input cursor-pointer" type="radio" name="deliveryType" id="delNewAddr" value="ที่อยู่ใหม่" onchange="toggleDocForm()">
+                  <label class="form-check-label cursor-pointer" for="delNewAddr">ที่อยู่ใหม่</label>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label small text-dark"><i class="fa-solid fa-user me-1"></i> ชื่อ-สกุล (ผู้รับเอกสาร)</label>
+                  <input type="text" id="recipientName" class="form-control rounded-3" placeholder="Name">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label small text-dark"><i class="fa-solid fa-mobile-screen-button me-1"></i> เบอร์โทรศัพท์ติดต่อ</label>
+                  <input type="tel" id="recipientPhone" class="form-control rounded-3" placeholder="เบอร์โทร">
+                </div>
+                <div class="col-12 d-none" id="deliveryAddressBox">
+                  <label class="form-label small text-dark"><i class="fa-solid fa-location-dot me-1"></i> ที่อยู่จัดส่ง</label>
+                  <textarea id="deliveryAddress" class="form-control rounded-3" rows="2" placeholder="Address"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: ยืนยันข้อมูล -->
+          <div class="card-modern">
+            <div class="text-danger small fw-semibold mb-2">* โปรดตรวจสอบความถูกต้องก่อนทำการส่งข้อมูล</div>
+            <div class="form-check">
+              <input class="form-check-input cursor-pointer" type="checkbox" id="confirmData" required>
+              <label class="form-check-label fw-semibold text-dark cursor-pointer" for="confirmData">
+                <i class="fa-regular fa-circle-check text-success me-1"></i> ข้าพเจ้าได้กรอกข้อมูลครบถ้วนแล้ว
+              </label>
+            </div>
+            <button type="submit" class="btn-submit">
+              <i class="fa-solid fa-paper-plane me-2"></i> บันทึก
+            </button>
+          </div>
+        </form>
+      `;
+
+      initCategoryFilter();
+      calculateTotalAmount();
+      toggleDocForm();
+      
+      document.getElementById('contactName')?.addEventListener('input', () => {
+        if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
+      });
+      document.getElementById('contactPhone')?.addEventListener('input', () => {
+        if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
+      });
+    }
+
+    function toggleExtraTeamsSection() {
+      const mainToggle = document.getElementById('toggleExtraTeams');
+      const container = document.getElementById('extraTeamsContainer');
+      if (!container) return;
+      if (mainToggle && mainToggle.checked) {
+        container.classList.remove('d-none');
+      } else {
+        container.classList.add('d-none');
+        const extraChecks = document.querySelectorAll('.extra-team-check');
+        extraChecks.forEach(chk => { chk.checked = false; });
+      }
+      calculateTotalAmount();
+    }
+
+    function initCategoryFilter() {
+      const select = document.getElementById('filterCategorySelect');
+      if (!select) return;
+      const items = document.querySelectorAll('.extra-team-item');
+      const categories = new Set();
+      items.forEach(item => {
+        const cat = item.dataset.category;
+        if (cat) categories.add(cat.trim());
+      });
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+
+    function filterTeams() {
+      const catVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
+      const searchVal = (document.getElementById('searchTeamInput')?.value || '').toLowerCase().trim();
+      const items = document.querySelectorAll('.extra-team-item');
+      items.forEach(item => {
+        const itemCat = (item.dataset.category || '').toLowerCase();
+        const itemText = (item.dataset.searchtext || '').toLowerCase();
+        const matchCat = !catVal || itemCat.includes(catVal);
+        const matchSearch = !searchVal || itemText.includes(searchVal);
+        if (matchCat && matchSearch) {
+          item.classList.remove('d-none');
+          item.classList.add('d-flex');
+        } else {
+          item.classList.add('d-none');
+          item.classList.remove('d-flex');
+        }
+      });
+    }
+
+    function calculateTotalAmount() {
+      let totalAmount = appData.noTeamIdMode ? 0 : Number(appData.amountValue || 0);
+      let teamCount = appData.noTeamIdMode ? 0 : 1;
+      let selectedTeamsList = [];
+
+      if (!appData.noTeamIdMode && appData.teamId) {
+        selectedTeamsList.push({
+          teamId: appData.teamId,
+          teamName: appData.teamName,
+          categoryText: appData.categoryText,
+          institution: appData.institution,
+          amount: Number(appData.amountValue || 0),
+          isPrimary: true
+        });
+      }
+
+      const mainToggle = document.getElementById('toggleExtraTeams');
+      const extraChecks = document.querySelectorAll('.extra-team-check:checked');
+
+      if (appData.noTeamIdMode || (mainToggle && mainToggle.checked)) {
+        extraChecks.forEach(chk => {
+          const amt = Number(chk.dataset.amount || 0);
+          totalAmount += amt;
+          teamCount++;
+          selectedTeamsList.push({
+            teamId: chk.dataset.teamid,
+            teamName: chk.dataset.teamname,
+            categoryText: chk.dataset.category || '-',
+            institution: chk.dataset.institution || '-',
+            amount: amt,
+            isPrimary: false
+          });
+        });
+      }
+
+      const tableCard = document.getElementById('selectedTeamsTableCard');
+      const tbody = document.getElementById('selectedTeamsTableBody');
+      const summaryTeamCountText = document.getElementById('summaryTeamCountText');
+      
+      if (tableCard && tbody) {
+        if (selectedTeamsList.length > 0 && (appData.noTeamIdMode || (mainToggle && mainToggle.checked))) {
+          tableCard.classList.remove('d-none');
+          if (summaryTeamCountText) summaryTeamCountText.innerText = teamCount;
+          let rowsHtml = '';
+          selectedTeamsList.forEach((team, idx) => {
+            const primaryBadge = team.isPrimary ? '<span class="badge bg-success ms-1">ทีมหลัก</span>' : '';
+            rowsHtml += `
+              <tr>
+                <td class="text-center fw-bold">${idx + 1}</td>
+                <td class="text-center"><span class="badge bg-secondary">${team.teamId}</span></td>
+                <td><strong class="text-dark">${team.teamName}</strong> ${primaryBadge}</td>
+                <td><strong class="text-dark">${team.institution}</strong></td>
+              </tr>
+            `;
+          });
+          tbody.innerHTML = rowsHtml;
+        } else {
+          tableCard.classList.add('d-none');
+        }
+      }
+
+      const totalDisplay = document.getElementById('totalAmountDisplay');
+      const summaryLabel = document.getElementById('amountSummaryLabel');
+      const badgeCount = document.getElementById('selectedCountBadge');
+
+      if (totalDisplay) {
+        totalDisplay.innerHTML = totalAmount.toLocaleString('th-TH') + ' <small>บาท</small>';
+      }
+      if (summaryLabel) {
+        summaryLabel.innerText = `ยอดเงินที่ต้องชำระทั้งหมด (${teamCount} ทีม)`;
+      }
+      if (badgeCount) {
+        badgeCount.innerText = `เลือกแล้ว ${extraChecks.length} ทีม`;
+      }
+
+      return { totalAmount, teamCount, selectedTeamsList };
+    }
+
+    function togglePayMethod() {
+      const method = document.querySelector('input[name="payMethod"]:checked').value;
+      document.getElementById('qrSection').classList.toggle('d-none', method !== 'qr');
+      document.getElementById('bankSection').classList.toggle('d-none', method !== 'bank');
+    }
+
+    function toggleDocForm() {
+      const docTypeEl = document.querySelector('input[name="docType"]:checked');
+      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
+      const taxHistoryEl = document.querySelector('input[name="taxHistory"]:checked');
+      const taxHistory = taxHistoryEl ? taxHistoryEl.value : 'ไม่เคย';
+      const deliveryTypeEl = document.querySelector('input[name="deliveryType"]:checked');
+      const deliveryType = deliveryTypeEl ? deliveryTypeEl.value : 'จัดส่งตามที่อยู่เอกสาร';
+
+      const taxHistorySec = document.getElementById('taxHistorySection');
+      const companyInfoSec = document.getElementById('companyInfoSection');
+      const companyContainer = document.getElementById('companyContainer');
+      const taxIdInput = document.getElementById('taxId');
+      const taxAddressInput = document.getElementById('taxAddress');
+      const taxAddressBox = document.getElementById('taxAddressBox');
+      const deliverySec = document.getElementById('deliverySection');
+      const deliveryAddressBox = document.getElementById('deliveryAddressBox');
+
+      if (!taxHistorySec || !companyInfoSec || !deliverySec) return;
+
+      if (docType === 'ไม่ต้องการ') {
+        taxHistorySec.classList.add('d-none');
+        companyInfoSec.classList.add('d-none');
+        deliverySec.classList.add('d-none');
+        return;
+      }
+
+      companyInfoSec.classList.remove('d-none');
+      deliverySec.classList.remove('d-none');
+      taxHistorySec.classList.remove('d-none');
+      taxAddressBox.classList.remove('d-none');
+
+      const currentSelect = document.getElementById('taxCompanySelect');
+      const currentInput = document.getElementById('taxCompanyInput');
+
+      if (taxHistory === 'เคย') {
+        if (!currentSelect) {
+          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
+                              <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
+          if (taxCompaniesData && taxCompaniesData.length > 0) {
+            taxCompaniesData.forEach((item, index) => {
+              selectHTML += `<option value="${index}">${item.companyName}</option>`;
+            });
+          }
+          selectHTML += `</select>`;
+          companyContainer.innerHTML = selectHTML;
+          if (taxIdInput) taxIdInput.readOnly = true;
+          if (taxAddressInput) taxAddressInput.readOnly = true;
+          onTaxCompanySelectChange('');
+        }
+      } else {
+        if (!currentInput) {
+          companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
+          if (taxIdInput) taxIdInput.readOnly = false;
+          if (taxAddressInput) taxAddressInput.readOnly = false;
+        }
+      }
+
+      if (deliveryType === 'ที่อยู่ใหม่') {
+        deliveryAddressBox.classList.remove('d-none');
+      } else {
+        deliveryAddressBox.classList.add('d-none');
+      }
+    }
+
+    function onTaxCompanySelectChange(selectedIndex) {
+      const taxIdInput = document.getElementById('taxId');
+      const taxAddressInput = document.getElementById('taxAddress');
+      if (selectedIndex !== "" && taxCompaniesData[selectedIndex]) {
+        const selected = taxCompaniesData[selectedIndex];
+        if (taxIdInput) taxIdInput.value = selected.taxId || '';
+        if (taxAddressInput) taxAddressInput.value = selected.address || '';
+      } else {
+        if (taxIdInput) taxIdInput.value = '';
+        if (taxAddressInput) taxAddressInput.value = '';
+      }
+    }
+
+    function previewFile(input) {
+      const file = input.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = document.getElementById('previewImage');
+          img.src = e.target.result;
+          img.classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const summary = calculateTotalAmount();
+      
+      if (summary.selectedTeamsList.length === 0) {
+        Swal.fire('คำเตือน', 'กรุณาเลือกอย่างน้อย 1 ทีมที่ต้องการชำระเงิน', 'warning');
+        return;
+      }
+
+      const docTypeChecked = document.querySelector('input[name="docType"]:checked');
+      if (!docTypeChecked) {
+        Swal.fire('คำเตือน', 'กรุณาเลือกความต้องการออกเอกสาร', 'warning');
+        return;
+      }
+
+      const isEver = document.querySelector('input[name="taxHistory"]:checked')?.value === 'เคย';
+      if (docTypeChecked.value !== 'ไม่ต้องการ') {
+        const taxHistoryChecked = document.querySelector('input[name="taxHistory"]:checked');
+        if (!taxHistoryChecked) {
+          Swal.fire('คำเตือน', 'กรุณาเลือกว่าเคยออกเอกสารกับทางบริษัทฯ แล้วหรือไม่', 'warning');
+          return;
+        }
+        if (isEver) {
+          const selectEl = document.getElementById('taxCompanySelect');
+          if (!selectEl || selectEl.value === '') {
+            Swal.fire('คำเตือน', 'กรุณาเลือกชื่อบริษัท / หน่วยงาน', 'warning');
+            return;
+          }
+        } else {
+          const companyInput = document.getElementById('taxCompanyInput');
+          if (!companyInput || !companyInput.value.trim()) {
+            Swal.fire('คำเตือน', 'กรุณาระบุชื่อบริษัท / หน่วยงาน', 'warning');
+            return;
+          }
+          if (!document.getElementById('taxId').value.trim()) {
+            Swal.fire('คำเตือน', 'กรุณาระบุเลขประจำตัวผู้เสียภาษี', 'warning');
+            return;
+          }
+          if (!document.getElementById('taxAddress').value.trim()) {
+            Swal.fire('คำเตือน', 'กรุณาระบุที่อยู่สำหรับออกเอกสาร', 'warning');
+            return;
+          }
+        }
+      }
+
+      const confirmData = document.getElementById('confirmData');
+      if (!confirmData || !confirmData.checked) {
+        Swal.fire('คำเตือน', 'กรุณาติ๊กยืนยันว่าได้กรอกข้อมูลครบถ้วนแล้ว', 'warning');
+        return;
+      }
+
+      const allTeamIds = summary.selectedTeamsList.map(t => t.teamId).join(', ');
+      const allTeamNames = summary.selectedTeamsList.map(t => t.teamName).join(', ');
+      const primaryTeamId = summary.selectedTeamsList[0].teamId;
+
+      let companyVal = '';
+      if (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) {
+        const selectEl = document.getElementById('taxCompanySelect');
+        const idx = selectEl ? selectEl.value : '';
+        if (idx !== '' && taxCompaniesData[idx]) {
+          companyVal = taxCompaniesData[idx].companyName;
+        }
+      } else {
+        const companyInput = document.getElementById('taxCompanyInput');
+        companyVal = companyInput ? companyInput.value : '';
+      }
+
+      Swal.fire({
+        title: 'กำลังส่งข้อมูล...',
+        text: 'กรุณารอสักครู่ ระบบกำลังบันทึกข้อมูล',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      function sendPayload(imageData = '', fileName = '', fileType = '') {
+        const payload = {
+          teamId: allTeamIds,
+          primaryTeamId: primaryTeamId,
+          teamName: allTeamNames,
+          institution: summary.selectedTeamsList[0].institution || appData.institution || '',
+          amount: summary.totalAmount.toString(),
+          teamCount: summary.teamCount,
+          userId: getQueryParam('userId') || appData.userId || '',
+          payMethod: document.querySelector('input[name="payMethod"]:checked').value,
+          contactName: document.getElementById('contactName').value,
+          contactPhone: document.getElementById('contactPhone').value,
+          contactLine: document.getElementById('contactLine').value,
+          docType: docTypeChecked.value,
+          taxHistory: document.querySelector('input[name="taxHistory"]:checked')?.value || '',
+          taxCompany: companyVal,
+          taxId: document.getElementById('taxId').value,
+          taxAddress: document.getElementById('taxAddress').value,
+          deliveryType: document.querySelector('input[name="deliveryType"]:checked')?.value || '',
+          recipientName: document.getElementById('recipientName').value,
+          recipientPhone: document.getElementById('recipientPhone').value,
+          deliveryAddress: document.getElementById('deliveryAddress').value,
+          imageData: imageData,
+          fileName: fileName,
+          fileType: fileType
+        };
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          google.script.run
+            .withSuccessHandler((res) => {
+              Swal.close();
+              if (res.status === 'success') {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
+                  text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
+                  confirmButtonText: 'ตกลง',
+                  confirmButtonColor: '#006633'
+                }).then(() => {
+                  showPaidSuccessCard(summary.selectedTeamsList);
+                });
+              } else {
+                Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+              }
+            })
+            .saveData(payload);
+        } else {
+          // สลับใช้อัปโหลดผ่าน Fetch API โดยยิงไปที่ GAS_WEB_APP_URL
+          fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          })
+          .then(res => res.json())
+          .then(res => {
+            Swal.close();
+            if (res.status === 'success') {
+              Swal.fire({
+                icon: 'success',
+                title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
+                text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#006633'
+              }).then(() => {
+                showPaidSuccessCard(summary.selectedTeamsList);
+              });
+            } else {
+              Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+            }
+          })
+          .catch(err => {
+            Swal.close();
+            console.error('Submit error:', err);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+          });
+        }
+      }
+
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput ? fileInput.files[0] : null;
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function() {
+          const rawBase64 = reader.result.split(',')[1] || '';
+          sendPayload(rawBase64, file.name, file.type);
+        };
+      } else {
+        sendPayload('', '', '');
+      }
+    }
+
+    function showPaidSuccessCard(selectedTeamsList) {
+      const container = document.getElementById('formContainer');
+      if (!container) return;
+
+      let teamsListHtml = '';
+      if (selectedTeamsList && selectedTeamsList.length > 0) {
+        selectedTeamsList.forEach(t => {
+          teamsListHtml += `
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+              <div class="me-2 text-truncate text-start">
+                <div>
+                  <span class="badge bg-secondary me-1">${t.teamId}</span>
+                  <strong class="text-dark small">${t.teamName}</strong>
+                </div>
+                <div class="text-muted" style="font-size: 0.78rem;">
+                  ${t.categoryText || '-'} | ${t.institution || '-'}
+                </div>
+              </div>
+              <div>
+                <span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Waiting</span>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      container.innerHTML = `
+        <div class="card p-4 text-center border-success bg-white rounded-4 my-4 shadow-sm">
+          <div class="mb-3">
+            <i class="fa-solid fa-circle-check text-success" style="font-size: 3.5rem;"></i>
+          </div>
+          <h4 class="fw-bold text-success mb-2">ยืนยันสลิปชำระเงินเรียบร้อยแล้ว</h4>
+          <p class="text-secondary mb-3 fs-6">
+            รายการทีมทั้งหมดที่คุณได้ทำรายการยืนยันสลิปชำระเงิน
+          </p>
+
+          <div class="p-3 bg-light rounded-3 text-start mb-3 w-100 border">
+            <div class="small text-muted mb-2">
+              <strong><i class="fa-solid fa-list-check me-1"></i> รายการทีมและสถานะการชำระเงิน (${selectedTeamsList ? selectedTeamsList.length : 1} ทีม) :</strong>
+            </div>
+            <div class="list-group list-group-flush rounded-2 border">
+              ${teamsListHtml}
+            </div>
+          </div>
+          <div class="text-primary small fw-medium">
+            <i class="fa-solid fa-circle-info me-1"></i> ท่านสามารถปิดหน้าต่างเบราว์เซอร์นี้ได้ทันที
+          </div>
+        </div>
+      `;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function copyContactToRecipient() {
+      const copyCheck = document.getElementById('copyContactInfo');
+      const contactName = document.getElementById('contactName')?.value || '';
+      const contactPhone = document.getElementById('contactPhone')?.value || '';
+      
+      const recipientNameInput = document.getElementById('recipientName');
+      const recipientPhoneInput = document.getElementById('recipientPhone');
+      if (copyCheck && copyCheck.checked) {
+        if (recipientNameInput) recipientNameInput.value = contactName;
+        if (recipientPhoneInput) recipientPhoneInput.value = contactPhone;
+      }
+    }
+  </script>
+  <div class="version-badge-floating">
+    <i class="fa-solid fa-code-branch"></i>
+    <span>Ver. 9.5.0</span>
+  </div>
+</body>
+</html>
