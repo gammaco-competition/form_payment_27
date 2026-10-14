@@ -175,26 +175,9 @@
       gap: 8px;
     }
   </style>
-
-  <script>
-    // 📍 เปลี่ยน URL ตรงนี้เป็น Exec URL ของ Google Apps Script Web App ของคุณได้เลยครับ
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
-    
-    let serverData = null;
-    let serverTaxCompanies = [];
-    
-    try {
-      serverData = <?!= JSON.stringify(data || null) ?>;
-      serverTaxCompanies = <?!= JSON.stringify(taxCompanies || []) ?>;
-    } catch(e) {
-      serverData = null;
-      serverTaxCompanies = [];
-    }
-  </script>
 </head>
 <body>
   <main class="page">
-    
     <div class="banner">
       <header class="heading">
         <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
@@ -211,15 +194,33 @@
   </main>
 
   <script>
+    // 📍 URL สำหรับเรียก API เมื่อเปิดผ่าน GitHub Pages
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
+
+    // ตัวแปรนี้จะได้รับข้อมูลจากการ String Replace ใน Code.gs (และเป็น null บน GitHub Pages)
+    let serverInitialPayload = /*__SERVER_DATA__*/ null;
+
     let appData = {};
     let taxCompaniesData = [];
+    let receiptCompaniesData = [];
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (serverData && serverData.success) {
-        appData = serverData;
-        taxCompaniesData = serverTaxCompanies || [];
+      if (serverInitialPayload && serverInitialPayload.data && serverInitialPayload.data.success) {
+        // 🟢 ทำงานบน Google Apps Script Web App (โหลดข้อมูลรวดเร็วผ่าน Payload)
+        appData = serverInitialPayload.data;
+        taxCompaniesData = serverInitialPayload.taxCompanies || [];
+        receiptCompaniesData = serverInitialPayload.receiptCompanies || [];
+        if (serverInitialPayload.eventName) {
+          const subTitle = document.getElementById('txtEventSub');
+          if (subTitle) subTitle.innerText = serverInitialPayload.eventName;
+        }
+        if (serverInitialPayload.bannerUrl) {
+          const bannerImg = document.getElementById('imgBanner');
+          if (bannerImg) bannerImg.src = serverInitialPayload.bannerUrl;
+        }
         renderUI();
       } else {
+        // 🌐 ทำงานบน GitHub Pages (สลับไปดึงข้อมูลผ่าน Fetch API)
         fetchDataFromApi();
       }
     });
@@ -249,6 +250,7 @@
           if (res && res.data && res.data.success) {
             appData = res.data;
             taxCompaniesData = res.taxCompanies || [];
+            receiptCompaniesData = res.receiptCompanies || [];
             if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
             if (res.bannerUrl) document.getElementById('imgBanner').src = res.bannerUrl;
             renderUI();
@@ -549,7 +551,7 @@
 
             <div id="taxHistorySection" class="mt-3 d-none">
               <div class="form-section-header">
-                <i class="fa-solid fa-caret-right text-dark"></i> บริษัทของท่าน เคยออกใบกำกับภาษีกับทางบริษัทฯ แล้วหรือไม่
+                <i class="fa-solid fa-caret-right text-dark"></i> บริษัทของท่าน เคยออกใบกำกับภาษี/ใบเสร็จรับเงิน กับทางบริษัทฯ แล้วหรือไม่
               </div>
               <div class="d-flex gap-4 flex-wrap mb-3">
                 <div class="form-check">
@@ -636,7 +638,7 @@
       initCategoryFilter();
       calculateTotalAmount();
       toggleDocForm();
-      
+
       document.getElementById('contactName')?.addEventListener('input', () => {
         if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
       });
@@ -733,7 +735,7 @@
       const tableCard = document.getElementById('selectedTeamsTableCard');
       const tbody = document.getElementById('selectedTeamsTableBody');
       const summaryTeamCountText = document.getElementById('summaryTeamCountText');
-      
+
       if (tableCard && tbody) {
         if (selectedTeamsList.length > 0 && (appData.noTeamIdMode || (mainToggle && mainToggle.checked))) {
           tableCard.classList.remove('d-none');
@@ -790,6 +792,7 @@
       const taxHistorySec = document.getElementById('taxHistorySection');
       const companyInfoSec = document.getElementById('companyInfoSection');
       const companyContainer = document.getElementById('companyContainer');
+      const taxIdBox = document.getElementById('taxIdBox');
       const taxIdInput = document.getElementById('taxId');
       const taxAddressInput = document.getElementById('taxAddress');
       const taxAddressBox = document.getElementById('taxAddressBox');
@@ -810,30 +813,34 @@
       taxHistorySec.classList.remove('d-none');
       taxAddressBox.classList.remove('d-none');
 
-      const currentSelect = document.getElementById('taxCompanySelect');
-      const currentInput = document.getElementById('taxCompanyInput');
+      // ซ่อน/แสดง ช่องเลขประจำตัวผู้เสียภาษี
+      if (docType === 'ใบเสร็จรับเงิน') {
+        if (taxIdBox) taxIdBox.classList.add('d-none');
+        if (taxIdInput) taxIdInput.value = '';
+      } else {
+        if (taxIdBox) taxIdBox.classList.remove('d-none');
+      }
+
+      // สลับดึงข้อมูล Dropdown ตามประเภทเอกสาร (ใบกำกับภาษี -> ชีต Data / ใบเสร็จรับเงิน -> ชีต Data 2)
+      const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
 
       if (taxHistory === 'เคย') {
-        if (!currentSelect) {
-          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
-                              <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
-          if (taxCompaniesData && taxCompaniesData.length > 0) {
-            taxCompaniesData.forEach((item, index) => {
-              selectHTML += `<option value="${index}">${item.companyName}</option>`;
-            });
-          }
-          selectHTML += `</select>`;
-          companyContainer.innerHTML = selectHTML;
-          if (taxIdInput) taxIdInput.readOnly = true;
-          if (taxAddressInput) taxAddressInput.readOnly = true;
-          onTaxCompanySelectChange('');
+        let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
+                            <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
+        if (activeCompaniesData && activeCompaniesData.length > 0) {
+          activeCompaniesData.forEach((item, index) => {
+            selectHTML += `<option value="${index}">${item.companyName}</option>`;
+          });
         }
+        selectHTML += `</select>`;
+        companyContainer.innerHTML = selectHTML;
+        if (taxIdInput) taxIdInput.readOnly = true;
+        if (taxAddressInput) taxAddressInput.readOnly = true;
+        onTaxCompanySelectChange('');
       } else {
-        if (!currentInput) {
-          companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
-          if (taxIdInput) taxIdInput.readOnly = false;
-          if (taxAddressInput) taxAddressInput.readOnly = false;
-        }
+        companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
+        if (taxIdInput) taxIdInput.readOnly = false;
+        if (taxAddressInput) taxAddressInput.readOnly = false;
       }
 
       if (deliveryType === 'ที่อยู่ใหม่') {
@@ -844,10 +851,14 @@
     }
 
     function onTaxCompanySelectChange(selectedIndex) {
+      const docTypeEl = document.querySelector('input[name="docType"]:checked');
+      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
+      const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
+
       const taxIdInput = document.getElementById('taxId');
       const taxAddressInput = document.getElementById('taxAddress');
-      if (selectedIndex !== "" && taxCompaniesData[selectedIndex]) {
-        const selected = taxCompaniesData[selectedIndex];
+      if (selectedIndex !== "" && activeCompaniesData[selectedIndex]) {
+        const selected = activeCompaniesData[selectedIndex];
         if (taxIdInput) taxIdInput.value = selected.taxId || '';
         if (taxAddressInput) taxAddressInput.value = selected.address || '';
       } else {
@@ -872,7 +883,7 @@
     function handleFormSubmit(event) {
       event.preventDefault();
       const summary = calculateTotalAmount();
-      
+
       if (summary.selectedTeamsList.length === 0) {
         Swal.fire('คำเตือน', 'กรุณาเลือกอย่างน้อย 1 ทีมที่ต้องการชำระเงิน', 'warning');
         return;
@@ -885,6 +896,8 @@
       }
 
       const isEver = document.querySelector('input[name="taxHistory"]:checked')?.value === 'เคย';
+      const activeCompaniesData = (docTypeChecked.value === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
+
       if (docTypeChecked.value !== 'ไม่ต้องการ') {
         const taxHistoryChecked = document.querySelector('input[name="taxHistory"]:checked');
         if (!taxHistoryChecked) {
@@ -903,7 +916,8 @@
             Swal.fire('คำเตือน', 'กรุณาระบุชื่อบริษัท / หน่วยงาน', 'warning');
             return;
           }
-          if (!document.getElementById('taxId').value.trim()) {
+          // บังคับกรอกเลขผู้เสียภาษีเฉพาะกรณี "ใบกำกับภาษี"
+          if (docTypeChecked.value === 'ใบกำกับภาษี' && !document.getElementById('taxId').value.trim()) {
             Swal.fire('คำเตือน', 'กรุณาระบุเลขประจำตัวผู้เสียภาษี', 'warning');
             return;
           }
@@ -928,8 +942,8 @@
       if (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) {
         const selectEl = document.getElementById('taxCompanySelect');
         const idx = selectEl ? selectEl.value : '';
-        if (idx !== '' && taxCompaniesData[idx]) {
-          companyVal = taxCompaniesData[idx].companyName;
+        if (idx !== '' && activeCompaniesData[idx]) {
+          companyVal = activeCompaniesData[idx].companyName;
         }
       } else {
         const companyInput = document.getElementById('taxCompanyInput');
@@ -990,7 +1004,6 @@
             })
             .saveData(payload);
         } else {
-          // สลับใช้อัปโหลดผ่าน Fetch API โดยยิงไปที่ GAS_WEB_APP_URL
           fetch(GAS_WEB_APP_URL, {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -1090,7 +1103,7 @@
       const copyCheck = document.getElementById('copyContactInfo');
       const contactName = document.getElementById('contactName')?.value || '';
       const contactPhone = document.getElementById('contactPhone')?.value || '';
-      
+
       const recipientNameInput = document.getElementById('recipientName');
       const recipientPhoneInput = document.getElementById('recipientPhone');
       if (copyCheck && copyCheck.checked) {
@@ -1101,7 +1114,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.5.0</span>
+    <span>Ver. 9.8.0</span>
   </div>
 </body>
 </html>
