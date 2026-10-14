@@ -195,6 +195,7 @@
   </main>
 
   <script>
+    const LIFF_ID = "2011973442-WBuNwOuS"; // LIFF ID ของคุณ
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
 
     let serverInitialPayload = /*__SERVER_DATA__*/ null;
@@ -202,8 +203,6 @@
     let appData = {};
     let taxCompaniesData = [];
     let receiptCompaniesData = [];
-
-    const LIFF_ID = "2011973442-WBuNwOuS"; // LIFF ID ของคุณ
 
     document.addEventListener('DOMContentLoaded', async () => {
       let userIdFromLiff = getQueryParam('userId'); // เช็คกรณีมีระบุมาทาง URL
@@ -216,6 +215,10 @@
           if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             userIdFromLiff = profile.userId; // ได้ LINE User ID ทันที
+
+            Swal.fire('ดึง User ID สำเร็จ', 'User ID: ' + userIdFromLiff, 'success');
+          } else {
+            liff.login();
           }
         }
       } catch (err) {
