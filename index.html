@@ -164,7 +164,7 @@
       background: rgba(0, 102, 51, 0.9);
       color: #ffffff;
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 0.82rem;
       font-size: 0.82rem;
       font-weight: 600;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -194,10 +194,8 @@
   </main>
 
   <script>
-    // 📍 URL สำหรับเรียก API เมื่อเปิดผ่าน GitHub Pages
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
 
-    // ตัวแปรนี้จะได้รับข้อมูลจากการ String Replace ใน Code.gs (และเป็น null บน GitHub Pages)
     let serverInitialPayload = /*__SERVER_DATA__*/ null;
 
     let appData = {};
@@ -206,7 +204,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       if (serverInitialPayload && serverInitialPayload.data && serverInitialPayload.data.success) {
-        // 🟢 ทำงานบน Google Apps Script Web App (โหลดข้อมูลรวดเร็วผ่าน Payload)
         appData = serverInitialPayload.data;
         taxCompaniesData = serverInitialPayload.taxCompanies || [];
         receiptCompaniesData = serverInitialPayload.receiptCompanies || [];
@@ -220,7 +217,6 @@
         }
         renderUI();
       } else {
-        // 🌐 ทำงานบน GitHub Pages (สลับไปดึงข้อมูลผ่าน Fetch API)
         fetchDataFromApi();
       }
     });
@@ -346,6 +342,7 @@
                 <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox" 
                        id="extraTeam_${index}" 
                        data-teamid="${team.teamId}" 
+                       data-userid="${team.userId || ''}"
                        data-teamname="${team.teamName}" 
                        data-category="${team.categoryText}"
                        data-institution="${team.institution}"
@@ -705,6 +702,7 @@
       if (!appData.noTeamIdMode && appData.teamId) {
         selectedTeamsList.push({
           teamId: appData.teamId,
+          userId: appData.userId || '',
           teamName: appData.teamName,
           categoryText: appData.categoryText,
           institution: appData.institution,
@@ -723,6 +721,7 @@
           teamCount++;
           selectedTeamsList.push({
             teamId: chk.dataset.teamid,
+            userId: chk.dataset.userid || '',
             teamName: chk.dataset.teamname,
             categoryText: chk.dataset.category || '-',
             institution: chk.dataset.institution || '-',
@@ -813,7 +812,6 @@
       taxHistorySec.classList.remove('d-none');
       taxAddressBox.classList.remove('d-none');
 
-      // ซ่อน/แสดง ช่องเลขประจำตัวผู้เสียภาษี
       if (docType === 'ใบเสร็จรับเงิน') {
         if (taxIdBox) taxIdBox.classList.add('d-none');
         if (taxIdInput) taxIdInput.value = '';
@@ -821,24 +819,40 @@
         if (taxIdBox) taxIdBox.classList.remove('d-none');
       }
 
-      // สลับดึงข้อมูล Dropdown ตามประเภทเอกสาร (ใบกำกับภาษี -> ชีต Data / ใบเสร็จรับเงิน -> ชีต Data 2)
       const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
 
       if (taxHistory === 'เคย') {
-        let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
-                            <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
-        if (activeCompaniesData && activeCompaniesData.length > 0) {
-          activeCompaniesData.forEach((item, index) => {
-            selectHTML += `<option value="${index}">${item.companyName}</option>`;
-          });
+        const existingSelect = document.getElementById('taxCompanySelect');
+        const currentDocType = existingSelect ? existingSelect.dataset.docType : null;
+
+        if (!existingSelect || currentDocType !== docType) {
+          const currentVal = existingSelect ? existingSelect.value : '';
+          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" data-doc-type="${docType}" onchange="onTaxCompanySelectChange(this.value)">
+                              <option value="">-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
+          if (activeCompaniesData && activeCompaniesData.length > 0) {
+            activeCompaniesData.forEach((item, index) => {
+              selectHTML += `<option value="${index}">${item.companyName}</option>`;
+            });
+          }
+          selectHTML += `</select>`;
+          companyContainer.innerHTML = selectHTML;
+          
+          if (taxIdInput) taxIdInput.readOnly = true;
+          if (taxAddressInput) taxAddressInput.readOnly = true;
+
+          const newSelect = document.getElementById('taxCompanySelect');
+          if (currentVal !== '' && newSelect && newSelect.options[currentVal]) {
+            newSelect.value = currentVal;
+            onTaxCompanySelectChange(currentVal);
+          } else {
+            onTaxCompanySelectChange('');
+          }
         }
-        selectHTML += `</select>`;
-        companyContainer.innerHTML = selectHTML;
-        if (taxIdInput) taxIdInput.readOnly = true;
-        if (taxAddressInput) taxAddressInput.readOnly = true;
-        onTaxCompanySelectChange('');
       } else {
-        companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
+        const existingInput = document.getElementById('taxCompanyInput');
+        if (!existingInput) {
+          companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
+        }
         if (taxIdInput) taxIdInput.readOnly = false;
         if (taxAddressInput) taxAddressInput.readOnly = false;
       }
@@ -916,7 +930,6 @@
             Swal.fire('คำเตือน', 'กรุณาระบุชื่อบริษัท / หน่วยงาน', 'warning');
             return;
           }
-          // บังคับกรอกเลขผู้เสียภาษีเฉพาะกรณี "ใบกำกับภาษี"
           if (docTypeChecked.value === 'ใบกำกับภาษี' && !document.getElementById('taxId').value.trim()) {
             Swal.fire('คำเตือน', 'กรุณาระบุเลขประจำตัวผู้เสียภาษี', 'warning');
             return;
@@ -957,6 +970,12 @@
         didOpen: () => Swal.showLoading()
       });
 
+      // ดึง userId จาก URL -> appData -> ทีมแรกที่เลือก (ล็อกป้องกันไม่ให้ค่าหลุดเป็นว่าง)
+      const finalUserId = getQueryParam('userId') 
+        || appData.userId 
+        || (summary.selectedTeamsList[0] ? summary.selectedTeamsList[0].userId : '') 
+        || '';
+
       function sendPayload(imageData = '', fileName = '', fileType = '') {
         const payload = {
           teamId: allTeamIds,
@@ -965,7 +984,7 @@
           institution: summary.selectedTeamsList[0].institution || appData.institution || '',
           amount: summary.totalAmount.toString(),
           teamCount: summary.teamCount,
-          userId: getQueryParam('userId') || appData.userId || '',
+          userId: finalUserId,
           payMethod: document.querySelector('input[name="payMethod"]:checked').value,
           contactName: document.getElementById('contactName').value,
           contactPhone: document.getElementById('contactPhone').value,
@@ -1114,7 +1133,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.8.0</span>
+    <span>Ver. 9.8.2</span>
   </div>
 </body>
 </html>
