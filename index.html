@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>แบบฟอร์มยืนยันสลิปชำระเงิน | FIRST LEGO League 2026/27</title>
-  
+
   <!-- Fonts & Frameworks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +12,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  
+
   <style>
     :root {
       --primary-green: #006633;
@@ -31,7 +30,7 @@
     * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
     body { margin: 0; padding: 24px 14px 40px; background: var(--bg-gray); color: var(--text-dark); }
     .page { width: 100%; max-width: 680px; margin: 0 auto; }
-    
+
     .banner { overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.06); text-align: center; }
     .heading { padding: 20px 15px; text-align: center; color: #fff; background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%); }
     .heading h1 { margin: 0; font-size: 1.35rem; font-weight: 600; }
@@ -165,7 +164,7 @@
       background: rgba(0, 102, 51, 0.9);
       color: #ffffff;
       padding: 6px 14px;
-      border-radius: 0.82rem;
+      border-radius: 20px;
       font-size: 0.82rem;
       font-weight: 600;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -176,9 +175,28 @@
       gap: 8px;
     }
   </style>
+
+  <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGt1KfTVvQOBEBREAYdtDZ0eKopKxX4yZ9T2BhWdhOBRkglDTbaTQdSNh5YOHa9HNO/exec";
+
+    let serverData = null;
+    let serverTaxCompanies = [];
+    let serverReceiptCompanies = [];
+
+    try {
+      serverData = <?!= JSON.stringify(data || null) ?>;
+      serverTaxCompanies = <?!= JSON.stringify(taxCompanies || []) ?>;
+      serverReceiptCompanies = <?!= JSON.stringify(receiptCompanies || []) ?>;
+    } catch(e) {
+      serverData = null;
+      serverTaxCompanies = [];
+      serverReceiptCompanies = [];
+    }
+  </script>
 </head>
 <body>
   <main class="page">
+
     <div class="banner">
       <header class="heading">
         <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
@@ -195,53 +213,18 @@
   </main>
 
   <script>
-    const LIFF_ID = "2011973442-WBuNwOuS"; // LIFF ID ของคุณ
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGt1KfTVvQOBEBREAYdtDZ0eKopKxX4yZ9T2BhWdhOBRkglDTbaTQdSNh5YOHa9HNO/exec";
-
-    let serverInitialPayload = /*__SERVER_DATA__*/ null;
-
     let appData = {};
     let taxCompaniesData = [];
     let receiptCompaniesData = [];
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      let userIdFromLiff = getQueryParam('userId'); // เช็คกรณีมีระบุมาทาง URL
-
-      // ดึง userId ผ่าน LINE LIFF SDK
-      try {
-        if (typeof liff !== 'undefined') {
-          await liff.init({ liffId: LIFF_ID });
-
-          if (liff.isLoggedIn()) {
-            const profile = await liff.getProfile();
-            userIdFromLiff = profile.userId; // ได้ LINE User ID ทันที
-
-            Swal.fire('ดึง User ID สำเร็จ', 'User ID: ' + userIdFromLiff, 'success');
-          } else {
-            liff.login();
-          }
-        }
-      } catch (err) {
-        console.error('LIFF Initialization Error:', err);
-      }
-
-      // ส่ง userId ไปโหลดข้อมูล
-      if (serverInitialPayload && serverInitialPayload.data && serverInitialPayload.data.success) {
-        appData = serverInitialPayload.data;
-        if (userIdFromLiff) appData.userId = userIdFromLiff;
-        taxCompaniesData = serverInitialPayload.taxCompanies || [];
-        receiptCompaniesData = serverInitialPayload.receiptCompanies || [];
-        if (serverInitialPayload.eventName) {
-          const subTitle = document.getElementById('txtEventSub');
-          if (subTitle) subTitle.innerText = serverInitialPayload.eventName;
-        }
-        if (serverInitialPayload.bannerUrl) {
-          const bannerImg = document.getElementById('imgBanner');
-          if (bannerImg) bannerImg.src = serverInitialPayload.bannerUrl;
-        }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (serverData && serverData.success) {
+        appData = serverData;
+        taxCompaniesData = serverTaxCompanies || [];
+        receiptCompaniesData = serverReceiptCompanies || [];
         renderUI();
       } else {
-        fetchDataFromApi(userIdFromLiff);
+        fetchDataFromApi();
       }
     });
 
@@ -250,10 +233,9 @@
       return urlParams.get(param) || '';
     }
 
-    function fetchDataFromApi(liffUserId = '') {
+    function fetchDataFromApi() {
       const teamId = getQueryParam('teamId');
-      // ใช้ userId จาก LIFF ก่อน หากไม่มีให้ใช้จาก URL Parameter
-      const userId = liffUserId || getQueryParam('userId');
+      const userId = getQueryParam('userId');
 
       Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
@@ -270,7 +252,6 @@
           Swal.close();
           if (res && res.data && res.data.success) {
             appData = res.data;
-            if (userId) appData.userId = userId; // ล็อกเก็บ userId ใส่ appData ไว้
             taxCompaniesData = res.taxCompanies || [];
             receiptCompaniesData = res.receiptCompanies || [];
             if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
@@ -362,17 +343,16 @@
         appData.otherTeams.forEach((team, index) => {
           otherTeamsRowsHtml += `
             <div class="form-check p-2 extra-team-item d-flex align-items-center justify-content-between"
-                 data-category="${team.categoryText}"
+                 data-agegroup="${team.ageGroup || ''}"
                  data-searchtext="${team.teamId} ${team.teamName} ${team.institution}">
               <div class="d-flex align-items-center gap-2">
-                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox" 
-                       id="extraTeam_${index}" 
-                       data-teamid="${team.teamId}" 
-                       data-userid="${team.userId || ''}"
-                       data-teamname="${team.teamName}" 
+                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox"
+                       id="extraTeam_${index}"
+                       data-teamid="${team.teamId}"
+                       data-teamname="${team.teamName}"
                        data-category="${team.categoryText}"
                        data-institution="${team.institution}"
-                       data-amount="${team.amountValue}" 
+                       data-amount="${team.amountValue}"
                        onchange="calculateTotalAmount()">
                 <label class="form-check-label text-dark cursor-pointer ms-1 small" for="extraTeam_${index}">
                   <span class="badge bg-secondary me-1">${team.teamId}</span> <strong>${team.teamName}</strong>
@@ -423,7 +403,7 @@
                 <div class="form-check m-0">
                   <input class="form-check-input cursor-pointer" type="checkbox" id="toggleExtraTeams" onchange="toggleExtraTeamsSection()">
                   <label class="form-check-label fw-semibold text-success small cursor-pointer" for="toggleExtraTeams">
-                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม 
+                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม
                     <span class="text-muted fw-normal ms-1">(พบอีก ${appData.otherTeams ? appData.otherTeams.length : 0} ทีมของคุณในระบบ)</span>
                   </label>
                 </div>
@@ -436,11 +416,11 @@
                 <span class="small text-muted fw-semibold" id="txtSelectTeamHeader">${isNoTeamMode ? 'โปรดเลือกรายการทีมที่ต้องการชำระเงิน:' : 'เลือกทีมที่ต้องการรวมสลิปชำระเงิน:'}</span>
                 <span class="badge bg-success text-white" id="selectedCountBadge">เลือกแล้ว 0 ทีม</span>
               </div>
-              
+
               <div class="row g-2 mb-2">
                 <div class="col-12 col-sm-6">
                   <select id="filterCategorySelect" class="form-select form-select-sm rounded-3" onchange="filterTeams()">
-                    <option value="">-- ทุกหมวดหมู่ --</option>
+                    <option value="">-- ประเภทการแข่งขัน (Category) --</option>
                   </select>
                 </div>
                 <div class="col-12 col-sm-6">
@@ -578,12 +558,12 @@
               </div>
               <div class="d-flex gap-4 flex-wrap mb-3">
                 <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyYes" value="เคย" onchange="toggleDocForm()">
-                  <label class="form-check-label cursor-pointer" for="historyYes">เคย</label>
+                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyYes" value="เคย" onchange="onTaxHistoryChange()">
+                    <label class="form-check-label cursor-pointer" for="historyYes">เคย</label>
                 </div>
                 <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyNo" value="ไม่เคย" onchange="toggleDocForm()" checked>
-                  <label class="form-check-label cursor-pointer" for="historyNo">ไม่เคย</label>
+                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyNo" value="ไม่เคย" onchange="onTaxHistoryChange()" checked>
+                    <label class="form-check-label cursor-pointer" for="historyNo">ไม่เคย</label>
                 </div>
               </div>
             </div>
@@ -684,39 +664,37 @@
       calculateTotalAmount();
     }
 
+    /** สร้างตัวเลือก Dropdown จากค่า Age Group ของทีมที่มีในรายการ */
     function initCategoryFilter() {
       const select = document.getElementById('filterCategorySelect');
       if (!select) return;
-      const items = document.querySelectorAll('.extra-team-item');
-      const categories = new Set();
-      items.forEach(item => {
-        const cat = item.dataset.category;
-        if (cat) categories.add(cat.trim());
+      const ageGroups = new Set();
+      document.querySelectorAll('.extra-team-item').forEach(item => {
+        const age = (item.dataset.agegroup || '').trim();
+        if (age) ageGroups.add(age);
       });
-      categories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        select.appendChild(opt);
-      });
+      [...ageGroups]
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+        .forEach(age => {
+          const opt = document.createElement('option');
+          opt.value = age;
+          opt.textContent = age;
+          select.appendChild(opt);
+        });
     }
 
+    /** กรองรายการทีมตาม Age Group และคำค้นหา */
     function filterTeams() {
-      const catVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
+      const ageVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
       const searchVal = (document.getElementById('searchTeamInput')?.value || '').toLowerCase().trim();
-      const items = document.querySelectorAll('.extra-team-item');
-      items.forEach(item => {
-        const itemCat = (item.dataset.category || '').toLowerCase();
+      document.querySelectorAll('.extra-team-item').forEach(item => {
+        const itemAge = (item.dataset.agegroup || '').toLowerCase();
         const itemText = (item.dataset.searchtext || '').toLowerCase();
-        const matchCat = !catVal || itemCat.includes(catVal);
+        const matchAge = !ageVal || itemAge === ageVal;
         const matchSearch = !searchVal || itemText.includes(searchVal);
-        if (matchCat && matchSearch) {
-          item.classList.remove('d-none');
-          item.classList.add('d-flex');
-        } else {
-          item.classList.add('d-none');
-          item.classList.remove('d-flex');
-        }
+        const show = matchAge && matchSearch;
+        item.classList.toggle('d-none', !show);
+        item.classList.toggle('d-flex', show);
       });
     }
 
@@ -728,7 +706,6 @@
       if (!appData.noTeamIdMode && appData.teamId) {
         selectedTeamsList.push({
           teamId: appData.teamId,
-          userId: appData.userId || '',
           teamName: appData.teamName,
           categoryText: appData.categoryText,
           institution: appData.institution,
@@ -747,7 +724,6 @@
           teamCount++;
           selectedTeamsList.push({
             teamId: chk.dataset.teamid,
-            userId: chk.dataset.userid || '',
             teamName: chk.dataset.teamname,
             categoryText: chk.dataset.category || '-',
             institution: chk.dataset.institution || '-',
@@ -809,17 +785,13 @@
     function toggleDocForm() {
       const docTypeEl = document.querySelector('input[name="docType"]:checked');
       const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
-      const taxHistoryEl = document.querySelector('input[name="taxHistory"]:checked');
-      const taxHistory = taxHistoryEl ? taxHistoryEl.value : 'ไม่เคย';
       const deliveryTypeEl = document.querySelector('input[name="deliveryType"]:checked');
       const deliveryType = deliveryTypeEl ? deliveryTypeEl.value : 'จัดส่งตามที่อยู่เอกสาร';
 
       const taxHistorySec = document.getElementById('taxHistorySection');
       const companyInfoSec = document.getElementById('companyInfoSection');
-      const companyContainer = document.getElementById('companyContainer');
       const taxIdBox = document.getElementById('taxIdBox');
       const taxIdInput = document.getElementById('taxId');
-      const taxAddressInput = document.getElementById('taxAddress');
       const taxAddressBox = document.getElementById('taxAddressBox');
       const deliverySec = document.getElementById('deliverySection');
       const deliveryAddressBox = document.getElementById('deliveryAddressBox');
@@ -838,6 +810,7 @@
       taxHistorySec.classList.remove('d-none');
       taxAddressBox.classList.remove('d-none');
 
+      // หากเลือก "ใบเสร็จรับเงิน" ให้ซ่อนช่องเลขประจำตัวผู้เสียภาษี
       if (docType === 'ใบเสร็จรับเงิน') {
         if (taxIdBox) taxIdBox.classList.add('d-none');
         if (taxIdInput) taxIdInput.value = '';
@@ -845,16 +818,37 @@
         if (taxIdBox) taxIdBox.classList.remove('d-none');
       }
 
+      // อัปเดต Dropdown หรือ Input ของบริษัทตามประเภทเอกสาร
+      onTaxHistoryChange();
+
+      // สลับการแสดงผลที่อยู่จัดส่ง โดยไม่รีเซ็ตค่าบริษัท
+      if (deliveryType === 'ที่อยู่ใหม่') {
+        if (deliveryAddressBox) deliveryAddressBox.classList.remove('d-none');
+      } else {
+        if (deliveryAddressBox) deliveryAddressBox.classList.add('d-none');
+      }
+    }
+
+    function onTaxHistoryChange() {
+      const docTypeEl = document.querySelector('input[name="docType"]:checked');
+      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
+      const taxHistoryEl = document.querySelector('input[name="taxHistory"]:checked');
+      const taxHistory = taxHistoryEl ? taxHistoryEl.value : 'ไม่เคย';
+
+      const companyContainer = document.getElementById('companyContainer');
+      const taxIdInput = document.getElementById('taxId');
+      const taxAddressInput = document.getElementById('taxAddress');
+
+      if (!companyContainer) return;
+
       const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
 
       if (taxHistory === 'เคย') {
+        // สร้าง Dropdown เฉพาะถ้ายังไม่มี <select> อยู่ใน Container
         const existingSelect = document.getElementById('taxCompanySelect');
-        const currentDocType = existingSelect ? existingSelect.dataset.docType : null;
-
-        if (!existingSelect || currentDocType !== docType) {
-          const currentVal = existingSelect ? existingSelect.value : '';
-          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" data-doc-type="${docType}" onchange="onTaxCompanySelectChange(this.value)">
-                              <option value="">-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
+        if (!existingSelect) {
+          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
+                              <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
           if (activeCompaniesData && activeCompaniesData.length > 0) {
             activeCompaniesData.forEach((item, index) => {
               selectHTML += `<option value="${index}">${item.companyName}</option>`;
@@ -862,31 +856,15 @@
           }
           selectHTML += `</select>`;
           companyContainer.innerHTML = selectHTML;
-          
           if (taxIdInput) taxIdInput.readOnly = true;
           if (taxAddressInput) taxAddressInput.readOnly = true;
-
-          const newSelect = document.getElementById('taxCompanySelect');
-          if (currentVal !== '' && newSelect && newSelect.options[currentVal]) {
-            newSelect.value = currentVal;
-            onTaxCompanySelectChange(currentVal);
-          } else {
-            onTaxCompanySelectChange('');
-          }
+          onTaxCompanySelectChange('');
         }
       } else {
-        const existingInput = document.getElementById('taxCompanyInput');
-        if (!existingInput) {
-          companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
-        }
+        // หากเปลี่ยนเป็น "ไม่เคย" ให้เปลี่ยนช่องเป็น Input ข้อความปกติ
+        companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
         if (taxIdInput) taxIdInput.readOnly = false;
         if (taxAddressInput) taxAddressInput.readOnly = false;
-      }
-
-      if (deliveryType === 'ที่อยู่ใหม่') {
-        deliveryAddressBox.classList.remove('d-none');
-      } else {
-        deliveryAddressBox.classList.add('d-none');
       }
     }
 
@@ -956,6 +934,7 @@
             Swal.fire('คำเตือน', 'กรุณาระบุชื่อบริษัท / หน่วยงาน', 'warning');
             return;
           }
+          // บังคับกรอกเลขผู้เสียภาษีเฉพาะกรณี "ใบกำกับภาษี" เท่านั้น
           if (docTypeChecked.value === 'ใบกำกับภาษี' && !document.getElementById('taxId').value.trim()) {
             Swal.fire('คำเตือน', 'กรุณาระบุเลขประจำตัวผู้เสียภาษี', 'warning');
             return;
@@ -996,12 +975,6 @@
         didOpen: () => Swal.showLoading()
       });
 
-      // ดึง userId จาก URL -> appData -> ทีมแรกที่เลือก (ล็อกป้องกันไม่ให้ค่าหลุดเป็นว่าง)
-      const finalUserId = getQueryParam('userId') 
-        || appData.userId 
-        || (summary.selectedTeamsList[0] ? summary.selectedTeamsList[0].userId : '') 
-        || '';
-
       function sendPayload(imageData = '', fileName = '', fileType = '') {
         const payload = {
           teamId: allTeamIds,
@@ -1010,7 +983,7 @@
           institution: summary.selectedTeamsList[0].institution || appData.institution || '',
           amount: summary.totalAmount.toString(),
           teamCount: summary.teamCount,
-          userId: finalUserId,
+          userId: getQueryParam('userId') || appData.userId || '',
           payMethod: document.querySelector('input[name="payMethod"]:checked').value,
           contactName: document.getElementById('contactName').value,
           contactPhone: document.getElementById('contactPhone').value,
@@ -1159,7 +1132,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.8.2</span>
+    <span>Ver. 9.6.1</span>
   </div>
 </body>
 </html>
