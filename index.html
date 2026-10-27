@@ -111,6 +111,10 @@
       transition: background 0.2s;
     }
     .upload-zone:hover { background: #f0f7f3; }
+    .upload-zone.dragover { background: #e3f3ea; border-style: solid; box-shadow: 0 0 0 4px rgba(0,102,51,.12); }
+    .upload-zone.has-file { border-style: solid; }
+    .upload-zone.invalid { border-color: #dc3545; background: #fff5f5; }
+    .slip-name { font-size: .85rem; color: var(--primary-green); font-weight: 600; margin-top: 8px; word-break: break-all; }
     .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 15px; }
     .btn-submit {
       background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%);
@@ -526,14 +530,15 @@
           <!-- Section 3: อัปโหลดสลิป -->
           <div class="card-modern">
             <div class="section-title">
-              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)
+              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)<span class="text-danger">*</span>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2"></i>
-              <div class="fw-semibold">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
-              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG</div>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2" id="uploadIcon"></i>
+              <div class="fw-semibold" id="uploadTitle">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
+              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG (จำเป็นต้องแนบ)</div>
               <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="previewFile(this)">
               <img id="previewImage" class="preview-img d-none" alt="Slip Preview">
+              <div class="slip-name d-none" id="slipName"></div>
             </div>
           </div>
 
@@ -664,6 +669,7 @@
       initCategoryFilter();
       calculateTotalAmount();
       toggleDocForm();
+      initDropZone();
 
       document.getElementById('contactName')?.addEventListener('input', () => {
         if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
@@ -908,17 +914,94 @@
       }
     }
 
+    /* ---------- สลิป: เลือกไฟล์ / ลากมาวาง ---------- */
+    let selectedSlipFile = null;
+    const MAX_SLIP_MB = 15;
+
     function previewFile(input) {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.getElementById('previewImage');
-          img.src = e.target.result;
-          img.classList.remove('d-none');
-        };
-        reader.readAsDataURL(file);
+      const file = input.files && input.files[0];
+      if (file) setSlipFile(file);
+    }
+
+    function setSlipFile(file) {
+      if (!file) return;
+      if (!/^image\//i.test(file.type || '') && !/\.(png|jpe?g|webp|heic|heif)$/i.test(file.name || '')) {
+        Swal.fire('ไฟล์ไม่ถูกต้อง', 'กรุณาแนบไฟล์รูปภาพ (PNG, JPG, JPEG)', 'warning');
+        return;
       }
+      if (file.size > MAX_SLIP_MB * 1024 * 1024) {
+        Swal.fire('ไฟล์ใหญ่เกินไป', `ขนาดไฟล์ต้องไม่เกิน ${MAX_SLIP_MB} MB`, 'warning');
+        return;
+      }
+      selectedSlipFile = file;
+      const zone = document.getElementById('uploadZone');
+      zone.classList.remove('invalid');
+      zone.classList.add('has-file');
+      document.getElementById('uploadTitle').textContent = 'แนบสลิปแล้ว (คลิกหรือลากไฟล์ใหม่มาวางเพื่อเปลี่ยน)';
+      const nameEl = document.getElementById('slipName');
+      nameEl.textContent = '📎 ' + file.name;
+      nameEl.classList.remove('d-none');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById('previewImage');
+        img.src = e.target.result;
+        img.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function initDropZone() {
+      const zone = document.getElementById('uploadZone');
+      if (!zone) return;
+      const stop = e => { e.preventDefault(); e.stopPropagation(); };
+      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.add('dragover'); }));
+      ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.remove('dragover'); }));
+      zone.addEventListener('drop', e => {
+        stop(e);
+        zone.classList.remove('dragover');
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) setSlipFile(file);
+      });
+      // วางไฟล์พลาดนอกกรอบ → ไม่ให้เบราว์เซอร์เปิดรูปแทนหน้าฟอร์ม
+      if (!window.__dropGuard) {
+        window.__dropGuard = true;
+        ['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+      }
+    }
+
+    /**
+     * ย่อรูปสลิปก่อนส่ง (รูปจากมือถือ 3-5 MB → ประมาณ 300-600 KB) ให้ส่งเร็วขึ้น
+     * รูปเล็กอยู่แล้วหรือย่อไม่ได้ → ส่งไฟล์เดิม
+     */
+    function prepareSlip(file) {
+      const readRaw = () => new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve({ base64: String(r.result).split(',')[1] || '', name: file.name, type: file.type || 'image/jpeg' });
+        r.onerror = () => reject(new Error('อ่านไฟล์สลิปไม่สำเร็จ'));
+        r.readAsDataURL(file);
+      });
+      if (file.size < 700 * 1024) return readRaw();
+      return new Promise(resolve => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const MAX = 1800;
+            const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * scale);
+            c.height = Math.round(img.naturalHeight * scale);
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            const dataUrl = c.toDataURL('image/jpeg', 0.85);
+            URL.revokeObjectURL(url);
+            resolve({ base64: dataUrl.split(',')[1], name: file.name.replace(/\.[^.]+$/, '') + '.jpg', type: 'image/jpeg' });
+          } catch (e) { URL.revokeObjectURL(url); readRaw().then(resolve); }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); readRaw().then(resolve); };
+        img.src = url;
+      });
     }
 
     function handleFormSubmit(event) {
@@ -969,6 +1052,13 @@
         }
       }
 
+      if (!selectedSlipFile) {
+        const zone = document.getElementById('uploadZone');
+        if (zone) { zone.classList.add('invalid'); zone.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        Swal.fire('คำเตือน', 'กรุณาแนบสลิปการโอนเงิน', 'warning');
+        return;
+      }
+
       const confirmData = document.getElementById('confirmData');
       if (!confirmData || !confirmData.checked) {
         Swal.fire('คำเตือน', 'กรุณาติ๊กยืนยันว่าได้กรอกข้อมูลครบถ้วนแล้ว', 'warning');
@@ -990,6 +1080,9 @@
         const companyInput = document.getElementById('taxCompanyInput');
         companyVal = companyInput ? companyInput.value : '';
       }
+
+      if (window.__submitting) return;     // กันกดส่งซ้ำ
+      window.__submitting = true;
 
       Swal.fire({
         title: 'กำลังส่งข้อมูล...',
@@ -1014,6 +1107,7 @@
           docType: docTypeChecked.value,
           taxHistory: document.querySelector('input[name="taxHistory"]:checked')?.value || '',
           taxCompany: companyVal,
+          taxCompanyIndex: (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) ? (document.getElementById('taxCompanySelect')?.value || '') : '',
           taxId: document.getElementById('taxId').value,
           taxAddress: document.getElementById('taxAddress').value,
           deliveryType: document.querySelector('input[name="deliveryType"]:checked')?.value || '',
@@ -1025,29 +1119,43 @@
           fileType: fileType
         };
 
+        const onResult = (res) => {
+          window.__submitting = false;
+          Swal.close();
+          if (res && res.status === 'success') {
+            Swal.fire({
+              icon: 'success',
+              title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
+              text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
+              confirmButtonText: 'ตกลง',
+              confirmButtonColor: '#006633'
+            }).then(() => {
+              showPaidSuccessCard(summary.selectedTeamsList);
+            });
+          } else if (res && res.code === 'ALREADY_PAID') {
+            Swal.fire({
+              icon: 'info',
+              title: 'ทีมนี้ยืนยันชำระเงินแล้ว',
+              text: res.message,
+              confirmButtonText: 'รีเฟรชหน้าเว็บ',
+              confirmButtonColor: '#006633',
+              allowOutsideClick: false
+            }).then(() => location.reload());
+          } else {
+            Swal.fire('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+          }
+        };
+        const onFail = (err) => {
+          window.__submitting = false;
+          Swal.close();
+          console.error('Submit error:', err);
+          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+        };
+
         if (typeof google !== 'undefined' && google.script && google.script.run) {
           google.script.run
-            .withSuccessHandler((res) => {
-              Swal.close();
-              if (res.status === 'success') {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
-                  text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
-                  confirmButtonText: 'ตกลง',
-                  confirmButtonColor: '#006633'
-                }).then(() => {
-                  showPaidSuccessCard(summary.selectedTeamsList);
-                });
-              } else {
-                Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-              }
-            })
-            .withFailureHandler((err) => {
-              Swal.close();
-              console.error('Submit error:', err);
-              Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
-            })
+            .withSuccessHandler(onResult)
+            .withFailureHandler(onFail)
             .saveData(payload);
         } else {
           fetch(GAS_WEB_APP_URL, {
@@ -1055,42 +1163,17 @@
             body: JSON.stringify(payload)
           })
           .then(res => res.json())
-          .then(res => {
-            Swal.close();
-            if (res.status === 'success') {
-              Swal.fire({
-                icon: 'success',
-                title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
-                text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#006633'
-              }).then(() => {
-                showPaidSuccessCard(summary.selectedTeamsList);
-              });
-            } else {
-              Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-            }
-          })
-          .catch(err => {
-            Swal.close();
-            console.error('Submit error:', err);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
-          });
+          .then(onResult)
+          .catch(onFail);
         }
       }
 
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput ? fileInput.files[0] : null;
-      if (file) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function() {
-          const rawBase64 = reader.result.split(',')[1] || '';
-          sendPayload(rawBase64, file.name, file.type);
-        };
-      } else {
-        sendPayload('', '', '');
-      }
+      prepareSlip(selectedSlipFile)
+        .then(s => sendPayload(s.base64, s.name, s.type))
+        .catch(onPrepFail => {
+          window.__submitting = false;
+          Swal.fire('เกิดข้อผิดพลาด', 'อ่านไฟล์สลิปไม่สำเร็จ กรุณาแนบใหม่อีกครั้ง', 'error');
+        });
     }
 
     function showPaidSuccessCard(selectedTeamsList) {
@@ -1160,7 +1243,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.6.2</span>
+    <span>Ver. 9.7.0</span>
   </div>
 </body>
 </html>
