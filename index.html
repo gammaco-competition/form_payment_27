@@ -177,22 +177,15 @@
   </style>
 
   <script>
+    // URL /exec ของ Web App (ใช้ตอนเปิดผ่าน GitHub Pages)
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGt1KfTVvQOBEBREAYdtDZ0eKopKxX4yZ9T2BhWdhOBRkglDTbaTQdSNh5YOHa9HNO/exec";
-
-    let serverData = null;
-    let serverTaxCompanies = [];
-    let serverReceiptCompanies = [];
-
-    try {
-      serverData = <?!= JSON.stringify(data || null) ?>;
-      serverTaxCompanies = <?!= JSON.stringify(taxCompanies || []) ?>;
-      serverReceiptCompanies = <?!= JSON.stringify(receiptCompanies || []) ?>;
-    } catch(e) {
-      serverData = null;
-      serverTaxCompanies = [];
-      serverReceiptCompanies = [];
-    }
   </script>
+
+  <!--
+    ข้อมูลที่ Apps Script ใส่มาให้ (เฉพาะตอนเปิดผ่าน Web App)
+    ใช้ type="application/json" → บน GitHub Pages ข้อความ scriptlet จะเป็นแค่ข้อความ ไม่ทำให้ JavaScript พัง
+  -->
+  <script type="application/json" id="serverPayload"><?!= JSON.stringify({ data: data || null, taxCompanies: taxCompanies || [], receiptCompanies: receiptCompanies || [], bannerUrl: bannerUrl || '', eventName: eventName || '' }).replace(/</g, '\\u003c') ?></script>
 </head>
 <body>
   <main class="page">
@@ -202,7 +195,7 @@
         <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
         <p id="txtEventSub">FIRST LEGO League 2026/27</p>
       </header>
-      <img id="imgBanner" src="" alt="Banner" onerror="this.style.display='none'">
+      <img id="imgBanner" alt="Banner" style="display:none">
     </div>
 
     <div id="formContainer">
@@ -217,12 +210,42 @@
     let taxCompaniesData = [];
     let receiptCompaniesData = [];
 
+    /** อ่านข้อมูลที่ Apps Script ใส่มา (ถ้าเปิดผ่าน GitHub จะได้ null แล้วไปดึงผ่าน API แทน) */
+    function readServerPayload() {
+      try {
+        const raw = (document.getElementById('serverPayload')?.textContent || '').trim();
+        if (!raw || raw.charAt(0) !== '{') return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /** แสดงรูปแบนเนอร์ใต้หัวข้อสีเขียว (ซ่อนเองถ้าโหลดรูปไม่ได้) */
+    function showBanner(url) {
+      const img = document.getElementById('imgBanner');
+      if (!img || !url) return;
+      img.onload = () => { img.style.display = 'block'; };
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = url;
+    }
+
+    /** กันข้อความจากชีตไปแทรก HTML ในหน้าเว็บ */
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      if (serverData && serverData.success) {
-        appData = serverData;
-        taxCompaniesData = serverTaxCompanies || [];
-        receiptCompaniesData = serverReceiptCompanies || [];
+      const p = readServerPayload();
+      if (p && p.data && p.data.success) {
+        appData = p.data;
+        taxCompaniesData = p.taxCompanies || [];
+        receiptCompaniesData = p.receiptCompanies || [];
+        if (p.eventName) document.getElementById('txtEventSub').innerText = p.eventName;
+        showBanner(p.bannerUrl);
         renderUI();
+      } else if (p && p.data && p.data.success === false) {
+        Swal.fire('เกิดข้อผิดพลาด', p.data.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
       } else {
         fetchDataFromApi();
       }
@@ -255,7 +278,7 @@
             taxCompaniesData = res.taxCompanies || [];
             receiptCompaniesData = res.receiptCompanies || [];
             if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
-            if (res.bannerUrl) document.getElementById('imgBanner').src = res.bannerUrl;
+            showBanner(res.bannerUrl);
             renderUI();
           } else {
             Swal.fire('เกิดข้อผิดพลาด', res?.data?.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
@@ -297,11 +320,11 @@
             <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
               <div class="me-2 text-truncate text-start">
                 <div>
-                  <span class="badge bg-secondary me-1">${team.teamId}</span>
-                  <strong class="text-dark small">${team.teamName}</strong>
+                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span>
+                  <strong class="text-dark small">${esc(team.teamName)}</strong>
                 </div>
                 <div class="text-muted" style="font-size: 0.78rem;">
-                  ${team.categoryText || '-'} | ${team.institution || '-'}
+                  ${esc(team.categoryText || '-')} | ${esc(team.institution || '-')}
                 </div>
               </div>
               <div>${badgeHtml}</div>
@@ -343,24 +366,24 @@
         appData.otherTeams.forEach((team, index) => {
           otherTeamsRowsHtml += `
             <div class="form-check p-2 extra-team-item d-flex align-items-center justify-content-between"
-                 data-agegroup="${team.ageGroup || ''}"
-                 data-searchtext="${team.teamId} ${team.teamName} ${team.institution}">
+                 data-agegroup="${esc(team.ageGroup || '')}"
+                 data-searchtext="${esc(team.teamId + ' ' + team.teamName + ' ' + team.institution)}">
               <div class="d-flex align-items-center gap-2">
                 <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox"
                        id="extraTeam_${index}"
-                       data-teamid="${team.teamId}"
-                       data-teamname="${team.teamName}"
-                       data-category="${team.categoryText}"
-                       data-institution="${team.institution}"
-                       data-amount="${team.amountValue}"
+                       data-teamid="${esc(team.teamId)}"
+                       data-teamname="${esc(team.teamName)}"
+                       data-category="${esc(team.categoryText)}"
+                       data-institution="${esc(team.institution)}"
+                       data-amount="${Number(team.amountValue) || 0}"
                        onchange="calculateTotalAmount()">
                 <label class="form-check-label text-dark cursor-pointer ms-1 small" for="extraTeam_${index}">
-                  <span class="badge bg-secondary me-1">${team.teamId}</span> <strong>${team.teamName}</strong>
-                  <div class="text-muted" style="font-size: 0.78rem;">${team.categoryText} - ${team.institution}</div>
+                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span> <strong>${esc(team.teamName)}</strong>
+                  <div class="text-muted" style="font-size: 0.78rem;">${esc(team.categoryText)} - ${esc(team.institution)}</div>
                 </label>
               </div>
               <div class="text-end fw-bold text-success pe-2 small" style="white-space: nowrap;">
-                +${team.formattedAmount} ฿
+                +${esc(team.formattedAmount)} ฿
               </div>
             </div>
           `;
@@ -382,19 +405,19 @@
                 <div class="data-grid">
                   <div class="data-item">
                     <span class="info-label">Key Data / ทีมไอดี (ทีมหลัก)</span>
-                    <div><span class="team-id-badge">${appData.teamId}</span></div>
+                    <div><span class="team-id-badge">${esc(appData.teamId)}</span></div>
                   </div>
                   <div class="data-item">
                     <span class="info-label">รุ่นอายุ / หมวดหมู่ (Category)</span>
-                    <div class="info-value">${appData.categoryText || '-'}</div>
+                    <div class="info-value">${esc(appData.categoryText || '-')}</div>
                   </div>
                   <div class="data-item full-width">
                     <span class="info-label">ชื่อทีม (Team Name)</span>
-                    <div class="info-value">${appData.teamName}</div>
+                    <div class="info-value">${esc(appData.teamName)}</div>
                   </div>
                   <div class="data-item full-width">
                     <span class="info-label">สถาบัน / หน่วยงาน (Institution)</span>
-                    <div class="info-value">${appData.institution}</div>
+                    <div class="info-value">${esc(appData.institution)}</div>
                   </div>
                 </div>
               </div>
@@ -453,7 +476,7 @@
 
             <div class="amount-card">
               <span class="amount-label" id="amountSummaryLabel">ยอดเงินที่ต้องชำระทั้งหมด</span>
-              <div class="amount-value" id="totalAmountDisplay">${appData.formattedAmount || '0'} <small>บาท</small></div>
+              <div class="amount-value" id="totalAmountDisplay">${esc(appData.formattedAmount || '0')} <small>บาท</small></div>
             </div>
           </section>
 
@@ -747,9 +770,9 @@
             rowsHtml += `
               <tr>
                 <td class="text-center fw-bold">${idx + 1}</td>
-                <td class="text-center"><span class="badge bg-secondary">${team.teamId}</span></td>
-                <td><strong class="text-dark">${team.teamName}</strong> ${primaryBadge}</td>
-                <td><strong class="text-dark">${team.institution}</strong></td>
+                <td class="text-center"><span class="badge bg-secondary">${esc(team.teamId)}</span></td>
+                <td><strong class="text-dark">${esc(team.teamName)}</strong> ${primaryBadge}</td>
+                <td><strong class="text-dark">${esc(team.institution)}</strong></td>
               </tr>
             `;
           });
@@ -851,7 +874,7 @@
                               <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
           if (activeCompaniesData && activeCompaniesData.length > 0) {
             activeCompaniesData.forEach((item, index) => {
-              selectHTML += `<option value="${index}">${item.companyName}</option>`;
+              selectHTML += `<option value="${index}">${esc(item.companyName)}</option>`;
             });
           }
           selectHTML += `</select>`;
@@ -1020,6 +1043,11 @@
                 Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
               }
             })
+            .withFailureHandler((err) => {
+              Swal.close();
+              console.error('Submit error:', err);
+              Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+            })
             .saveData(payload);
         } else {
           fetch(GAS_WEB_APP_URL, {
@@ -1076,11 +1104,11 @@
             <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
               <div class="me-2 text-truncate text-start">
                 <div>
-                  <span class="badge bg-secondary me-1">${t.teamId}</span>
-                  <strong class="text-dark small">${t.teamName}</strong>
+                  <span class="badge bg-secondary me-1">${esc(t.teamId)}</span>
+                  <strong class="text-dark small">${esc(t.teamName)}</strong>
                 </div>
                 <div class="text-muted" style="font-size: 0.78rem;">
-                  ${t.categoryText || '-'} | ${t.institution || '-'}
+                  ${esc(t.categoryText || '-')} | ${esc(t.institution || '-')}
                 </div>
               </div>
               <div>
@@ -1132,7 +1160,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.6.1</span>
+    <span>Ver. 9.6.2</span>
   </div>
 </body>
 </html>
