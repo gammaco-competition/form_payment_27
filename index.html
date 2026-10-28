@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>แบบฟอร์มยืนยันสลิปชำระเงิน | Global Robotics Games 2026</title>
-  
+  <title>แบบฟอร์มยืนยันสลิปชำระเงิน | FIRST LEGO League 2026/27</title>
+
   <!-- Fonts & Frameworks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+
   <style>
     :root {
       --primary-green: #006633;
@@ -30,7 +30,7 @@
     * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
     body { margin: 0; padding: 24px 14px 40px; background: var(--bg-gray); color: var(--text-dark); }
     .page { width: 100%; max-width: 680px; margin: 0 auto; }
-    
+
     .banner { overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.06); text-align: center; }
     .heading { padding: 20px 15px; text-align: center; color: #fff; background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%); }
     .heading h1 { margin: 0; font-size: 1.35rem; font-weight: 600; }
@@ -111,6 +111,10 @@
       transition: background 0.2s;
     }
     .upload-zone:hover { background: #f0f7f3; }
+    .upload-zone.dragover { background: #e3f3ea; border-style: solid; box-shadow: 0 0 0 4px rgba(0,102,51,.12); }
+    .upload-zone.has-file { border-style: solid; }
+    .upload-zone.invalid { border-color: #dc3545; background: #fff5f5; }
+    .slip-name { font-size: .85rem; color: var(--primary-green); font-weight: 600; margin-top: 8px; word-break: break-all; }
     .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 15px; }
     .btn-submit {
       background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%);
@@ -177,32 +181,25 @@
   </style>
 
   <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzyT6wBk6r-3fFKYCvbG5W61_VMeYZqounz5dX__yBTBS-K69A_30BnjEVRsBHoFd4l/exec";
-    
-    let serverData = null;
-    let serverTaxCompanies = [];
-    let serverReceiptCompanies = [];
-    
-    try {
-      serverData = <?!= JSON.stringify(data || null) ?>;
-      serverTaxCompanies = <?!= JSON.stringify(taxCompanies || []) ?>;
-      serverReceiptCompanies = <?!= JSON.stringify(receiptCompanies || []) ?>;
-    } catch(e) {
-      serverData = null;
-      serverTaxCompanies = [];
-      serverReceiptCompanies = [];
-    }
+    // URL /exec ของ Web App (ใช้ตอนเปิดผ่าน GitHub Pages)
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGt1KfTVvQOBEBREAYdtDZ0eKopKxX4yZ9T2BhWdhOBRkglDTbaTQdSNh5YOHa9HNO/exec";
   </script>
+
+  <!--
+    ข้อมูลที่ Apps Script ใส่มาให้ (เฉพาะตอนเปิดผ่าน Web App)
+    ใช้ type="application/json" → บน GitHub Pages ข้อความ scriptlet จะเป็นแค่ข้อความ ไม่ทำให้ JavaScript พัง
+  -->
+  <script type="application/json" id="serverPayload"><?!= JSON.stringify({ data: data || null, taxCompanies: taxCompanies || [], receiptCompanies: receiptCompanies || [], bannerUrl: bannerUrl || '', eventName: eventName || '' }).replace(/</g, '\\u003c') ?></script>
 </head>
 <body>
   <main class="page">
-    
+
     <div class="banner">
       <header class="heading">
         <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
-        <p id="txtEventSub">Global Robotics Games 2026</p>
+        <p id="txtEventSub">FIRST LEGO League 2026/27</p>
       </header>
-      <img id="imgBanner" src="" alt="Banner" onerror="this.style.display='none'">
+      <img id="imgBanner" alt="Banner" style="display:none">
     </div>
 
     <div id="formContainer">
@@ -217,12 +214,42 @@
     let taxCompaniesData = [];
     let receiptCompaniesData = [];
 
+    /** อ่านข้อมูลที่ Apps Script ใส่มา (ถ้าเปิดผ่าน GitHub จะได้ null แล้วไปดึงผ่าน API แทน) */
+    function readServerPayload() {
+      try {
+        const raw = (document.getElementById('serverPayload')?.textContent || '').trim();
+        if (!raw || raw.charAt(0) !== '{') return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    /** แสดงรูปแบนเนอร์ใต้หัวข้อสีเขียว (ซ่อนเองถ้าโหลดรูปไม่ได้) */
+    function showBanner(url) {
+      const img = document.getElementById('imgBanner');
+      if (!img || !url) return;
+      img.onload = () => { img.style.display = 'block'; };
+      img.onerror = () => { img.style.display = 'none'; };
+      img.src = url;
+    }
+
+    /** กันข้อความจากชีตไปแทรก HTML ในหน้าเว็บ */
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
-      if (serverData && serverData.success) {
-        appData = serverData;
-        taxCompaniesData = serverTaxCompanies || [];
-        receiptCompaniesData = serverReceiptCompanies || [];
+      const p = readServerPayload();
+      if (p && p.data && p.data.success) {
+        appData = p.data;
+        taxCompaniesData = p.taxCompanies || [];
+        receiptCompaniesData = p.receiptCompanies || [];
+        if (p.eventName) document.getElementById('txtEventSub').innerText = p.eventName;
+        showBanner(p.bannerUrl);
         renderUI();
+      } else if (p && p.data && p.data.success === false) {
+        Swal.fire('เกิดข้อผิดพลาด', p.data.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
       } else {
         fetchDataFromApi();
       }
@@ -255,7 +282,7 @@
             taxCompaniesData = res.taxCompanies || [];
             receiptCompaniesData = res.receiptCompanies || [];
             if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
-            if (res.bannerUrl) document.getElementById('imgBanner').src = res.bannerUrl;
+            showBanner(res.bannerUrl);
             renderUI();
           } else {
             Swal.fire('เกิดข้อผิดพลาด', res?.data?.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
@@ -297,11 +324,11 @@
             <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
               <div class="me-2 text-truncate text-start">
                 <div>
-                  <span class="badge bg-secondary me-1">${team.teamId}</span>
-                  <strong class="text-dark small">${team.teamName}</strong>
+                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span>
+                  <strong class="text-dark small">${esc(team.teamName)}</strong>
                 </div>
                 <div class="text-muted" style="font-size: 0.78rem;">
-                  ${team.categoryText || '-'} | ${team.institution || '-'}
+                  ${esc(team.categoryText || '-')} | ${esc(team.institution || '-')}
                 </div>
               </div>
               <div>${badgeHtml}</div>
@@ -343,24 +370,24 @@
         appData.otherTeams.forEach((team, index) => {
           otherTeamsRowsHtml += `
             <div class="form-check p-2 extra-team-item d-flex align-items-center justify-content-between"
-                 data-category="${team.categoryText}"
-                 data-searchtext="${team.teamId} ${team.teamName} ${team.institution}">
+                 data-agegroup="${esc(team.ageGroup || '')}"
+                 data-searchtext="${esc(team.teamId + ' ' + team.teamName + ' ' + team.institution)}">
               <div class="d-flex align-items-center gap-2">
-                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox" 
-                       id="extraTeam_${index}" 
-                       data-teamid="${team.teamId}" 
-                       data-teamname="${team.teamName}" 
-                       data-category="${team.categoryText}"
-                       data-institution="${team.institution}"
-                       data-amount="${team.amountValue}" 
+                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox"
+                       id="extraTeam_${index}"
+                       data-teamid="${esc(team.teamId)}"
+                       data-teamname="${esc(team.teamName)}"
+                       data-category="${esc(team.categoryText)}"
+                       data-institution="${esc(team.institution)}"
+                       data-amount="${Number(team.amountValue) || 0}"
                        onchange="calculateTotalAmount()">
                 <label class="form-check-label text-dark cursor-pointer ms-1 small" for="extraTeam_${index}">
-                  <span class="badge bg-secondary me-1">${team.teamId}</span> <strong>${team.teamName}</strong>
-                  <div class="text-muted" style="font-size: 0.78rem;">${team.categoryText} - ${team.institution}</div>
+                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span> <strong>${esc(team.teamName)}</strong>
+                  <div class="text-muted" style="font-size: 0.78rem;">${esc(team.categoryText)} - ${esc(team.institution)}</div>
                 </label>
               </div>
               <div class="text-end fw-bold text-success pe-2 small" style="white-space: nowrap;">
-                +${team.formattedAmount} ฿
+                +${esc(team.formattedAmount)} ฿
               </div>
             </div>
           `;
@@ -382,19 +409,19 @@
                 <div class="data-grid">
                   <div class="data-item">
                     <span class="info-label">Key Data / ทีมไอดี (ทีมหลัก)</span>
-                    <div><span class="team-id-badge">${appData.teamId}</span></div>
+                    <div><span class="team-id-badge">${esc(appData.teamId)}</span></div>
                   </div>
                   <div class="data-item">
                     <span class="info-label">รุ่นอายุ / หมวดหมู่ (Category)</span>
-                    <div class="info-value">${appData.categoryText || '-'}</div>
+                    <div class="info-value">${esc(appData.categoryText || '-')}</div>
                   </div>
                   <div class="data-item full-width">
                     <span class="info-label">ชื่อทีม (Team Name)</span>
-                    <div class="info-value">${appData.teamName}</div>
+                    <div class="info-value">${esc(appData.teamName)}</div>
                   </div>
                   <div class="data-item full-width">
                     <span class="info-label">สถาบัน / หน่วยงาน (Institution)</span>
-                    <div class="info-value">${appData.institution}</div>
+                    <div class="info-value">${esc(appData.institution)}</div>
                   </div>
                 </div>
               </div>
@@ -403,7 +430,7 @@
                 <div class="form-check m-0">
                   <input class="form-check-input cursor-pointer" type="checkbox" id="toggleExtraTeams" onchange="toggleExtraTeamsSection()">
                   <label class="form-check-label fw-semibold text-success small cursor-pointer" for="toggleExtraTeams">
-                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม 
+                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม
                     <span class="text-muted fw-normal ms-1">(พบอีก ${appData.otherTeams ? appData.otherTeams.length : 0} ทีมของคุณในระบบ)</span>
                   </label>
                 </div>
@@ -416,11 +443,11 @@
                 <span class="small text-muted fw-semibold" id="txtSelectTeamHeader">${isNoTeamMode ? 'โปรดเลือกรายการทีมที่ต้องการชำระเงิน:' : 'เลือกทีมที่ต้องการรวมสลิปชำระเงิน:'}</span>
                 <span class="badge bg-success text-white" id="selectedCountBadge">เลือกแล้ว 0 ทีม</span>
               </div>
-              
+
               <div class="row g-2 mb-2">
                 <div class="col-12 col-sm-6">
                   <select id="filterCategorySelect" class="form-select form-select-sm rounded-3" onchange="filterTeams()">
-                    <option value="">-- ทุกหมวดหมู่ --</option>
+                    <option value="">-- ประเภทการแข่งขัน (Category) --</option>
                   </select>
                 </div>
                 <div class="col-12 col-sm-6">
@@ -453,7 +480,7 @@
 
             <div class="amount-card">
               <span class="amount-label" id="amountSummaryLabel">ยอดเงินที่ต้องชำระทั้งหมด</span>
-              <div class="amount-value" id="totalAmountDisplay">${appData.formattedAmount || '0'} <small>บาท</small></div>
+              <div class="amount-value" id="totalAmountDisplay">${esc(appData.formattedAmount || '0')} <small>บาท</small></div>
             </div>
           </section>
 
@@ -503,14 +530,15 @@
           <!-- Section 3: อัปโหลดสลิป -->
           <div class="card-modern">
             <div class="section-title">
-              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)
+              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)<span class="text-danger">*</span>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2"></i>
-              <div class="fw-semibold">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
-              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG</div>
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2" id="uploadIcon"></i>
+              <div class="fw-semibold" id="uploadTitle">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
+              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG (จำเป็นต้องแนบ)</div>
               <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="previewFile(this)">
               <img id="previewImage" class="preview-img d-none" alt="Slip Preview">
+              <div class="slip-name d-none" id="slipName"></div>
             </div>
           </div>
 
@@ -641,7 +669,8 @@
       initCategoryFilter();
       calculateTotalAmount();
       toggleDocForm();
-      
+      initDropZone();
+
       document.getElementById('contactName')?.addEventListener('input', () => {
         if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
       });
@@ -664,39 +693,37 @@
       calculateTotalAmount();
     }
 
+    /** สร้างตัวเลือก Dropdown จากค่า Age Group ของทีมที่มีในรายการ */
     function initCategoryFilter() {
       const select = document.getElementById('filterCategorySelect');
       if (!select) return;
-      const items = document.querySelectorAll('.extra-team-item');
-      const categories = new Set();
-      items.forEach(item => {
-        const cat = item.dataset.category;
-        if (cat) categories.add(cat.trim());
+      const ageGroups = new Set();
+      document.querySelectorAll('.extra-team-item').forEach(item => {
+        const age = (item.dataset.agegroup || '').trim();
+        if (age) ageGroups.add(age);
       });
-      categories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        select.appendChild(opt);
-      });
+      [...ageGroups]
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
+        .forEach(age => {
+          const opt = document.createElement('option');
+          opt.value = age;
+          opt.textContent = age;
+          select.appendChild(opt);
+        });
     }
 
+    /** กรองรายการทีมตาม Age Group และคำค้นหา */
     function filterTeams() {
-      const catVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
+      const ageVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
       const searchVal = (document.getElementById('searchTeamInput')?.value || '').toLowerCase().trim();
-      const items = document.querySelectorAll('.extra-team-item');
-      items.forEach(item => {
-        const itemCat = (item.dataset.category || '').toLowerCase();
+      document.querySelectorAll('.extra-team-item').forEach(item => {
+        const itemAge = (item.dataset.agegroup || '').toLowerCase();
         const itemText = (item.dataset.searchtext || '').toLowerCase();
-        const matchCat = !catVal || itemCat.includes(catVal);
+        const matchAge = !ageVal || itemAge === ageVal;
         const matchSearch = !searchVal || itemText.includes(searchVal);
-        if (matchCat && matchSearch) {
-          item.classList.remove('d-none');
-          item.classList.add('d-flex');
-        } else {
-          item.classList.add('d-none');
-          item.classList.remove('d-flex');
-        }
+        const show = matchAge && matchSearch;
+        item.classList.toggle('d-none', !show);
+        item.classList.toggle('d-flex', show);
       });
     }
 
@@ -738,7 +765,7 @@
       const tableCard = document.getElementById('selectedTeamsTableCard');
       const tbody = document.getElementById('selectedTeamsTableBody');
       const summaryTeamCountText = document.getElementById('summaryTeamCountText');
-      
+
       if (tableCard && tbody) {
         if (selectedTeamsList.length > 0 && (appData.noTeamIdMode || (mainToggle && mainToggle.checked))) {
           tableCard.classList.remove('d-none');
@@ -749,9 +776,9 @@
             rowsHtml += `
               <tr>
                 <td class="text-center fw-bold">${idx + 1}</td>
-                <td class="text-center"><span class="badge bg-secondary">${team.teamId}</span></td>
-                <td><strong class="text-dark">${team.teamName}</strong> ${primaryBadge}</td>
-                <td><strong class="text-dark">${team.institution}</strong></td>
+                <td class="text-center"><span class="badge bg-secondary">${esc(team.teamId)}</span></td>
+                <td><strong class="text-dark">${esc(team.teamName)}</strong> ${primaryBadge}</td>
+                <td><strong class="text-dark">${esc(team.institution)}</strong></td>
               </tr>
             `;
           });
@@ -853,7 +880,7 @@
                               <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
           if (activeCompaniesData && activeCompaniesData.length > 0) {
             activeCompaniesData.forEach((item, index) => {
-              selectHTML += `<option value="${index}">${item.companyName}</option>`;
+              selectHTML += `<option value="${index}">${esc(item.companyName)}</option>`;
             });
           }
           selectHTML += `</select>`;
@@ -887,23 +914,100 @@
       }
     }
 
+    /* ---------- สลิป: เลือกไฟล์ / ลากมาวาง ---------- */
+    let selectedSlipFile = null;
+    const MAX_SLIP_MB = 15;
+
     function previewFile(input) {
-      const file = input.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = document.getElementById('previewImage');
-          img.src = e.target.result;
-          img.classList.remove('d-none');
-        };
-        reader.readAsDataURL(file);
+      const file = input.files && input.files[0];
+      if (file) setSlipFile(file);
+    }
+
+    function setSlipFile(file) {
+      if (!file) return;
+      if (!/^image\//i.test(file.type || '') && !/\.(png|jpe?g|webp|heic|heif)$/i.test(file.name || '')) {
+        Swal.fire('ไฟล์ไม่ถูกต้อง', 'กรุณาแนบไฟล์รูปภาพ (PNG, JPG, JPEG)', 'warning');
+        return;
       }
+      if (file.size > MAX_SLIP_MB * 1024 * 1024) {
+        Swal.fire('ไฟล์ใหญ่เกินไป', `ขนาดไฟล์ต้องไม่เกิน ${MAX_SLIP_MB} MB`, 'warning');
+        return;
+      }
+      selectedSlipFile = file;
+      const zone = document.getElementById('uploadZone');
+      zone.classList.remove('invalid');
+      zone.classList.add('has-file');
+      document.getElementById('uploadTitle').textContent = 'แนบสลิปแล้ว (คลิกหรือลากไฟล์ใหม่มาวางเพื่อเปลี่ยน)';
+      const nameEl = document.getElementById('slipName');
+      nameEl.textContent = '📎 ' + file.name;
+      nameEl.classList.remove('d-none');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = document.getElementById('previewImage');
+        img.src = e.target.result;
+        img.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function initDropZone() {
+      const zone = document.getElementById('uploadZone');
+      if (!zone) return;
+      const stop = e => { e.preventDefault(); e.stopPropagation(); };
+      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.add('dragover'); }));
+      ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.remove('dragover'); }));
+      zone.addEventListener('drop', e => {
+        stop(e);
+        zone.classList.remove('dragover');
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) setSlipFile(file);
+      });
+      // วางไฟล์พลาดนอกกรอบ → ไม่ให้เบราว์เซอร์เปิดรูปแทนหน้าฟอร์ม
+      if (!window.__dropGuard) {
+        window.__dropGuard = true;
+        ['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+      }
+    }
+
+    /**
+     * ย่อรูปสลิปก่อนส่ง (รูปจากมือถือ 3-5 MB → ประมาณ 300-600 KB) ให้ส่งเร็วขึ้น
+     * รูปเล็กอยู่แล้วหรือย่อไม่ได้ → ส่งไฟล์เดิม
+     */
+    function prepareSlip(file) {
+      const readRaw = () => new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve({ base64: String(r.result).split(',')[1] || '', name: file.name, type: file.type || 'image/jpeg' });
+        r.onerror = () => reject(new Error('อ่านไฟล์สลิปไม่สำเร็จ'));
+        r.readAsDataURL(file);
+      });
+      if (file.size < 700 * 1024) return readRaw();
+      return new Promise(resolve => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const MAX = 1800;
+            const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+            const c = document.createElement('canvas');
+            c.width = Math.round(img.naturalWidth * scale);
+            c.height = Math.round(img.naturalHeight * scale);
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+            ctx.drawImage(img, 0, 0, c.width, c.height);
+            const dataUrl = c.toDataURL('image/jpeg', 0.85);
+            URL.revokeObjectURL(url);
+            resolve({ base64: dataUrl.split(',')[1], name: file.name.replace(/\.[^.]+$/, '') + '.jpg', type: 'image/jpeg' });
+          } catch (e) { URL.revokeObjectURL(url); readRaw().then(resolve); }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); readRaw().then(resolve); };
+        img.src = url;
+      });
     }
 
     function handleFormSubmit(event) {
       event.preventDefault();
       const summary = calculateTotalAmount();
-      
+
       if (summary.selectedTeamsList.length === 0) {
         Swal.fire('คำเตือน', 'กรุณาเลือกอย่างน้อย 1 ทีมที่ต้องการชำระเงิน', 'warning');
         return;
@@ -948,6 +1052,13 @@
         }
       }
 
+      if (!selectedSlipFile) {
+        const zone = document.getElementById('uploadZone');
+        if (zone) { zone.classList.add('invalid'); zone.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        Swal.fire('คำเตือน', 'กรุณาแนบสลิปการโอนเงิน', 'warning');
+        return;
+      }
+
       const confirmData = document.getElementById('confirmData');
       if (!confirmData || !confirmData.checked) {
         Swal.fire('คำเตือน', 'กรุณาติ๊กยืนยันว่าได้กรอกข้อมูลครบถ้วนแล้ว', 'warning');
@@ -969,6 +1080,9 @@
         const companyInput = document.getElementById('taxCompanyInput');
         companyVal = companyInput ? companyInput.value : '';
       }
+
+      if (window.__submitting) return;     // กันกดส่งซ้ำ
+      window.__submitting = true;
 
       Swal.fire({
         title: 'กำลังส่งข้อมูล...',
@@ -993,6 +1107,7 @@
           docType: docTypeChecked.value,
           taxHistory: document.querySelector('input[name="taxHistory"]:checked')?.value || '',
           taxCompany: companyVal,
+          taxCompanyIndex: (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) ? (document.getElementById('taxCompanySelect')?.value || '') : '',
           taxId: document.getElementById('taxId').value,
           taxAddress: document.getElementById('taxAddress').value,
           deliveryType: document.querySelector('input[name="deliveryType"]:checked')?.value || '',
@@ -1004,24 +1119,43 @@
           fileType: fileType
         };
 
+        const onResult = (res) => {
+          window.__submitting = false;
+          Swal.close();
+          if (res && res.status === 'success') {
+            Swal.fire({
+              icon: 'success',
+              title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
+              text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
+              confirmButtonText: 'ตกลง',
+              confirmButtonColor: '#006633'
+            }).then(() => {
+              showPaidSuccessCard(summary.selectedTeamsList);
+            });
+          } else if (res && res.code === 'ALREADY_PAID') {
+            Swal.fire({
+              icon: 'info',
+              title: 'ทีมนี้ยืนยันชำระเงินแล้ว',
+              text: res.message,
+              confirmButtonText: 'รีเฟรชหน้าเว็บ',
+              confirmButtonColor: '#006633',
+              allowOutsideClick: false
+            }).then(() => location.reload());
+          } else {
+            Swal.fire('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+          }
+        };
+        const onFail = (err) => {
+          window.__submitting = false;
+          Swal.close();
+          console.error('Submit error:', err);
+          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+        };
+
         if (typeof google !== 'undefined' && google.script && google.script.run) {
           google.script.run
-            .withSuccessHandler((res) => {
-              Swal.close();
-              if (res.status === 'success') {
-                Swal.fire({
-                  icon: 'success',
-                  title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
-                  text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
-                  confirmButtonText: 'ตกลง',
-                  confirmButtonColor: '#006633'
-                }).then(() => {
-                  showPaidSuccessCard(summary.selectedTeamsList);
-                });
-              } else {
-                Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-              }
-            })
+            .withSuccessHandler(onResult)
+            .withFailureHandler(onFail)
             .saveData(payload);
         } else {
           fetch(GAS_WEB_APP_URL, {
@@ -1029,42 +1163,17 @@
             body: JSON.stringify(payload)
           })
           .then(res => res.json())
-          .then(res => {
-            Swal.close();
-            if (res.status === 'success') {
-              Swal.fire({
-                icon: 'success',
-                title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
-                text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
-                confirmButtonText: 'ตกลง',
-                confirmButtonColor: '#006633'
-              }).then(() => {
-                showPaidSuccessCard(summary.selectedTeamsList);
-              });
-            } else {
-              Swal.fire('เกิดข้อผิดพลาด', res.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-            }
-          })
-          .catch(err => {
-            Swal.close();
-            console.error('Submit error:', err);
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
-          });
+          .then(onResult)
+          .catch(onFail);
         }
       }
 
-      const fileInput = document.getElementById('fileInput');
-      const file = fileInput ? fileInput.files[0] : null;
-      if (file) {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function() {
-          const rawBase64 = reader.result.split(',')[1] || '';
-          sendPayload(rawBase64, file.name, file.type);
-        };
-      } else {
-        sendPayload('', '', '');
-      }
+      prepareSlip(selectedSlipFile)
+        .then(s => sendPayload(s.base64, s.name, s.type))
+        .catch(onPrepFail => {
+          window.__submitting = false;
+          Swal.fire('เกิดข้อผิดพลาด', 'อ่านไฟล์สลิปไม่สำเร็จ กรุณาแนบใหม่อีกครั้ง', 'error');
+        });
     }
 
     function showPaidSuccessCard(selectedTeamsList) {
@@ -1078,11 +1187,11 @@
             <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
               <div class="me-2 text-truncate text-start">
                 <div>
-                  <span class="badge bg-secondary me-1">${t.teamId}</span>
-                  <strong class="text-dark small">${t.teamName}</strong>
+                  <span class="badge bg-secondary me-1">${esc(t.teamId)}</span>
+                  <strong class="text-dark small">${esc(t.teamName)}</strong>
                 </div>
                 <div class="text-muted" style="font-size: 0.78rem;">
-                  ${t.categoryText || '-'} | ${t.institution || '-'}
+                  ${esc(t.categoryText || '-')} | ${esc(t.institution || '-')}
                 </div>
               </div>
               <div>
@@ -1123,7 +1232,7 @@
       const copyCheck = document.getElementById('copyContactInfo');
       const contactName = document.getElementById('contactName')?.value || '';
       const contactPhone = document.getElementById('contactPhone')?.value || '';
-      
+
       const recipientNameInput = document.getElementById('recipientName');
       const recipientPhoneInput = document.getElementById('recipientPhone');
       if (copyCheck && copyCheck.checked) {
@@ -1134,7 +1243,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.6.0</span>
+    <span>Ver. 9.7.0</span>
   </div>
 </body>
 </html>
