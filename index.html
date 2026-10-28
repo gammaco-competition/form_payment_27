@@ -1,1249 +1,1424 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>แบบฟอร์มยืนยันสลิปชำระเงิน | FIRST LEGO League 2026/27</title>
-
-  <!-- Fonts & Frameworks -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Information System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   <style>
-    :root {
-      --primary-green: #006633;
-      --primary-dark: #004d26;
-      --bg-gray: #f3f5fa;
-      --text-dark: #2c3e50;
-      --text-muted: #687385;
-      --card-bg: #ffffff;
-      --inner-card-bg: #f8faf9;
-      --border-color: #e1ece7;
-      --amount-bg: #fff0f0;
-      --amount-border: #ffd6d6;
-      --amount-text: #d9534f;
-    }
-    * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
-    body { margin: 0; padding: 24px 14px 40px; background: var(--bg-gray); color: var(--text-dark); }
-    .page { width: 100%; max-width: 680px; margin: 0 auto; }
-
-    .banner { overflow: hidden; border-radius: 20px; background: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.06); text-align: center; }
-    .heading { padding: 20px 15px; text-align: center; color: #fff; background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%); }
-    .heading h1 { margin: 0; font-size: 1.35rem; font-weight: 600; }
-    .heading p { margin: 5px 0 0; font-size: .92rem; opacity: .9; }
-    .banner img { display: block; width: auto; max-height: 120px; margin: 12px auto; object-fit: contain; background: #fff; }
-    .card { margin-top: 18px; padding: 22px; background: var(--card-bg); border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.05); }
-    .card-modern { background: #ffffff; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,.05); padding: 22px; margin-top: 18px; }
-    .section-title {
-      font-weight: 600;
-      font-size: 1.05rem;
-      color: var(--primary-green);
-      margin: 0 0 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .form-section-header {
-      font-weight: 600;
-      font-size: 0.98rem;
-      color: #222;
-      margin-top: 15px;
-      margin-bottom: 12px;
-    }
-    .key-data-card {
-      background: var(--inner-card-bg);
-      border: 1px solid var(--border-color);
-      border-left: 5px solid var(--primary-green);
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 16px;
-    }
-    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .data-item { display: flex; flex-direction: column; gap: 4px; }
-    .data-item.full-width { grid-column: 1 / -1; }
-    .info-label { font-size: 0.85rem; color: var(--text-muted); }
-    .info-value { font-size: 0.98rem; font-weight: 600; color: var(--text-dark); word-break: break-word; }
-    .team-id-badge {
-      background: var(--primary-green);
-      color: #ffffff;
-      padding: 4px 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.92rem;
-      display: inline-block;
-      width: fit-content;
-    }
-    .amount-card {
-      background: var(--amount-bg);
-      border: 1px solid var(--amount-border);
-      border-radius: 14px;
-      padding: 16px 20px;
-      text-align: right;
-    }
-    .amount-label { font-size: 0.88rem; color: var(--amount-text); display: block; margin-bottom: 2px; }
-    .amount-value { font-size: 1.75rem; font-weight: 700; color: var(--amount-text); line-height: 1.2; }
-    .amount-value small { font-size: 1rem; font-weight: 500; margin-left: 4px; }
-    .pay-option {
-      border: 2px solid #e9ecef;
-      border-radius: 12px;
-      padding: 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .pay-option:hover, .btn-check:checked + .pay-option {
-      border-color: var(--primary-green);
-      background-color: #f4f9f6;
-    }
-    .upload-zone {
-      border: 2px dashed var(--primary-green);
-      border-radius: 15px;
-      padding: 25px 15px;
-      text-align: center;
-      background: #fcfdfe;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .upload-zone:hover { background: #f0f7f3; }
-    .upload-zone.dragover { background: #e3f3ea; border-style: solid; box-shadow: 0 0 0 4px rgba(0,102,51,.12); }
-    .upload-zone.has-file { border-style: solid; }
-    .upload-zone.invalid { border-color: #dc3545; background: #fff5f5; }
-    .slip-name { font-size: .85rem; color: var(--primary-green); font-weight: 600; margin-top: 8px; word-break: break-all; }
-    .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 15px; }
-    .btn-submit {
-      background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%);
-      color: #ffffff;
-      border: none;
-      border-radius: 12px;
-      padding: 14px 30px;
-      font-size: 1.05rem;
-      font-weight: 600;
-      width: 100%;
-      box-shadow: 0 6px 18px rgba(0, 102, 51, 0.25);
-      margin-top: 20px;
-      transition: all 0.2s;
-    }
-    .btn-submit:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 102, 51, 0.35); }
-    footer { padding: 20px 8px 0; text-align: center; color: #8b93a2; font-size: .82rem; font-weight: 500; }
-    .form-check-input:checked {
-      background-color: var(--primary-green);
-      border-color: var(--primary-green);
-    }
-    .cursor-pointer { cursor: pointer; }
-    .extra-teams-scroll-box {
-      max-height: 280px;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      background: #ffffff;
-    }
-    .extra-team-item {
-      transition: background-color 0.15s ease;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .extra-team-item:last-child { border-bottom: none; }
-    .extra-team-item:hover { background-color: #f4f9f6 !important; }
-    .summary-table-card {
-      border: 1px solid #d0e7d9;
-      border-left: 5px solid var(--primary-green);
-      background: #ffffff;
-      border-radius: 12px;
-    }
-    @media (max-width: 576px) {
-      .card, .card-modern { padding: 18px; }
-      .data-grid { grid-template-columns: 1fr; gap: 12px; }
-      .amount-value { font-size: 1.5rem; }
-    }
-    .version-badge-floating {
+    body { background-color: #f8f9fa; padding: 20px 10px; font-family: 'Prompt', sans-serif; }
+    
+    .gear-btn {
       position: fixed;
       top: 15px;
       right: 15px;
-      z-index: 9999;
-      background: rgba(0, 102, 51, 0.9);
-      color: #ffffff;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: #ffffff;
+      border: 1px solid #dee2e6;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      z-index: 2000;
     }
+    .gear-btn:hover { background: #f8f9fa; transform: rotate(60deg); }
+
+    .outside-container {
+      min-height: 75vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    .outside-title {
+      color: #d32f2f;
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+    .outside-subtitle {
+      font-size: 1.15rem;
+      color: #333333;
+      font-weight: 400;
+    }
+
+    .main-card { position: relative; max-width: 800px; width: 100%; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    @media (min-width: 768px) { body { padding: 40px 20px; } .main-card { padding: 30px; } }
+
+    .form-label { font-weight: 600; color: #495057; font-size: 0.85rem; }
+    .hidden { display: none !important; }
+    .loading { color: #1a237e; font-style: italic; }
+    
+    .admin-badge { background-color: #d32f2f; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; display: inline-block; }
+    .admin-panel { background-color: #fff8e1; border: 1px solid #ffe082; border-radius: 12px; padding: 18px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(255, 193, 7, 0.15); }
+    
+    .section-header { background-color: #e8eaf6; padding: 8px 12px; border-radius: 5px; margin: 25px 0 10px 0; font-weight: bold; color: #1a237e; border-left: 5px solid #1a237e; font-size: 1rem; }
+    
+    .btn-year-compare {
+      background: #ffffff;
+      border: 1px solid #1a237e;
+      color: #1a237e;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 3px 10px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-year-compare:hover {
+      background: #1a237e;
+      color: #ffffff;
+    }
+
+    .app-media-wrapper { width: 100%; margin-bottom: 20px; }
+    
+    .banner-mode-container {
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background-color: #f1f3f5;
+      min-height: 140px;
+    }
+    .banner-slide-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .logo-mode-container {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 20px auto;
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background-color: #ffffff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      border: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-slide-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10px;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .slide-dots {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+    .slide-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .slide-dot.active {
+      background: #1a237e;
+      transform: scale(1.25);
+    }
+    .logo-mode-container .slide-dots { bottom: 4px; }
+    .logo-mode-container .slide-dot { background: rgba(0,0,0,0.25); }
+    .logo-mode-container .slide-dot.active { background: #d32f2f; }
+
+    .status-wrapper { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 15px; }
+    .badge-custom { padding: 8px 16px; border-radius: 8px; font-weight: bold; color: white; display: inline-flex; align-items: center; min-width: 120px; font-size: 0.9rem; }
+    .status-registered { background-color: #166534; }
+    .status-cancel { background-color: #dc3545; }
+    
+    .dot-green-pulse { height: 10px; width: 10px; background-color: #2ecc71; border-radius: 50%; margin-left: 10px; animation: pulse-green 2s infinite; }
+    @keyframes pulse-green { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } }
+    
+    .dot-red { height: 10px; width: 10px; background-color: #ffc107; border-radius: 50%; margin-left: 10px; animation: pulse-red 2s infinite; }
+    @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); } }
+    
+    .btn { padding: 10px 20px; font-weight: 600; border-radius: 8px; }
+    .btn-save-custom { background-color: #1a237e !important; border-color: #1a237e !important; color: white !important; transition: 0.3s; }
+    .btn-save-custom:hover { background-color: #0d1440 !important; opacity: 0.9; }
+    
+    .dob-header-container { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; }
+    .image-slot-card { background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    .image-preview-mini { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ced4da; }
+    .cat-rule-row { border: 1px solid #e2e8f0; transition: background-color 0.2s; }
+    .cat-rule-row:hover { background-color: #edf2f7 !important; }
+    .member-divider { border-top: 2px solid #c5cae9; margin: 18px 0 12px 0; }
+    .member-block:first-child .member-divider, .member-block.first-visible .member-divider { display: none; }
+    .member-tag { display: inline-block; color: #fff; font-weight: 600; font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    
+    @media (max-width: 576px) { .col-md-8, .col-md-6, .col-md-4, .col-md-3 { width: 100% !important; } .main-card { border-radius: 0; box-shadow: none; } }
   </style>
-
-  <script>
-    // URL /exec ของ Web App (ใช้ตอนเปิดผ่าน GitHub Pages)
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxGt1KfTVvQOBEBREAYdtDZ0eKopKxX4yZ9T2BhWdhOBRkglDTbaTQdSNh5YOHa9HNO/exec";
-  </script>
-
-  <!--
-    ข้อมูลที่ Apps Script ใส่มาให้ (เฉพาะตอนเปิดผ่าน Web App)
-    ใช้ type="application/json" → บน GitHub Pages ข้อความ scriptlet จะเป็นแค่ข้อความ ไม่ทำให้ JavaScript พัง
-  -->
-  <script type="application/json" id="serverPayload"><?!= JSON.stringify({ data: data || null, taxCompanies: taxCompanies || [], receiptCompanies: receiptCompanies || [], bannerUrl: bannerUrl || '', eventName: eventName || '' }).replace(/</g, '\\u003c') ?></script>
 </head>
 <body>
-  <main class="page">
 
-    <div class="banner">
-      <header class="heading">
-        <h1 id="txtEventTitle">แบบฟอร์มยืนยันสลิปชำระเงิน</h1>
-        <p id="txtEventSub">FIRST LEGO League 2026/27</p>
-      </header>
-      <img id="imgBanner" alt="Banner" style="display:none">
+  <!-- ปุ่มรูปเฟืองมุมขวาบน สำหรับ Admin -->
+  <button class="gear-btn" onclick="promptAdminLogin()" title="Admin Setting">⚙️</button>
+
+  <!-- 1. หน้าจอแสดงผลเมื่ออยู่นอกเวลาทำการ -->
+  <div id="outsideSystemSection" class="outside-container hidden">
+    <div id="outsideMediaContainer" class="app-media-wrapper"></div>
+    <div id="outsideTitle" class="outside-title"></div>
+    <div id="outsideSubtitle" class="outside-subtitle"></div>
+  </div>
+
+  <!-- 2. กรอบหลักแสดงผลเมื่อเปิดระบบ -->
+  <div id="mainContentCard" class="main-card hidden">
+    <div id="mainMediaContainer" class="app-media-wrapper"></div>
+    <p id="noteTextDisplay" style="color: red; font-weight: bold;"></p>
+
+    <!-- Admin Panel Settings Section -->
+    <div id="adminPanelSection" class="hidden admin-panel mb-4">
+      <div class="admin-badge">⚙️ Admin Control Panel</div>
+      <h6 class="fw-bold mb-3">ตั้งค่าระบบ (System Settings)</h6>
+      
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <label class="form-label">วัน-เวลา เปิดระบบ</label>
+          <input type="datetime-local" id="cfgOpenDate" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">วัน-เวลา ปิดระบบ</label>
+          <input type="datetime-local" id="cfgCloseDate" class="form-control form-control-sm">
+        </div>
+        
+        <div class="col-12">
+          <label class="form-label">ข้อความหมายเหตุ (ตัวหนังสือสีแดง)</label>
+          <textarea id="cfgNoteText" class="form-control form-control-sm" rows="2"></textarea>
+        </div>
+
+        <div class="col-12 mt-2">
+          <label class="form-label fw-bold">รูปแบบการแสดงผลภาพ (Display Mode)</label>
+          <div class="d-flex gap-4 p-2 border rounded bg-white">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="imageMode" id="modeBanner" value="BANNER">
+              <label class="form-check-label" for="modeBanner">
+                🖼️ <strong>Banner</strong> (Size 1200 x 250 px)
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="imageMode" id="modeLogo" value="LOGO">
+              <label class="form-check-label" for="modeLogo">
+                🛡️ <strong>Logo</strong> (Size 200 x 200 px)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="form-label fw-bold mb-0">รูปภาพโลโก้ / แบนเนอร์ (อัปโหลดหรือใส่ URL ได้สูงสุด 3 ภาพ)</label>
+            <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" onclick="addImageSlot()" id="btnAddSlot" style="font-size: 0.75rem;">+ เพิ่มภาพ</button>
+          </div>
+          <small class="text-muted d-block mb-2">* หากมีมากกว่า 1 ภาพ ระบบจะสลับภาพเปลี่ยนเองอัตโนมัติ (Slideshow)</small>
+          <div id="imageSlotsContainer"></div>
+        </div>
+
+        <div class="col-12 mt-2">
+          <label class="form-label fw-bold">เลือกล็อก Event Name (ติ๊กเลือกได้มากกว่า 1 รายการ)</label>
+          <div id="cfgActiveEventContainer" class="p-2 border rounded bg-white" style="max-height: 160px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="col-12 mt-3">
+          <label class="form-label fw-bold">🎯 กำหนดช่วงปีเกิด และจำนวนสมาชิกของแต่ละ Age Group (แสดงตาม Event ที่เลือกไว้)</label>
+          <small class="text-muted d-block mb-2">* กรอกปีเป็น ค.ศ. (เช่น 2010) หรือ พ.ศ. (เช่น 2553) ก็ได้ ระบบจะแปลงให้อัตโนมัติ<br>* จำนวนสมาชิกกำหนดได้ 1 - 10 คน (ค่าเริ่มต้น น้อยสุด 2 คน มากสุด 10 คน)</small>
+          <div id="cfgCategoryRulesContainer" class="p-2 border rounded bg-white" style="max-height: 220px; overflow-y: auto;"></div>
+        </div>
+      </div>
+      <button onclick="saveAdminSettings()" class="btn btn-warning btn-sm w-100 fw-bold">💾 บันทึกการตั้งค่าระบบ</button>
     </div>
 
-    <div id="formContainer">
-      <!-- Dynamic Form / Paid Card Container -->
+    <!-- Login Section -->
+    <div id="loginSection" class="container-fluid px-0">
+      <div class="mb-3">
+        <label class="form-label">Your Email (อีเมลของคุณ)</label>
+        <input type="email" id="email" class="form-control form-control-lg" placeholder="example@mail.com">
+      </div>
+      <button onclick="login()" id="loginBtn" class="btn btn-primary w-100">Confirm</button>
     </div>
 
-    <footer>Gammaco (Thailand) Co.,LTD.</footer>
-  </main>
+    <!-- Team Selection Section -->
+    <div id="selectSection" class="hidden container-fluid px-0">
+      <div class="mb-3">
+        <label class="form-label">Choose Team ID</label>
+        <select id="teamDropdown" class="form-select form-select-lg" onchange="loadTeamData()">
+          <option value="">-- Choose your Team ID --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Data Edit Section -->
+    <div id="editSection" class="hidden">
+      <hr>
+      <div id="formFields" class="row g-2 g-md-3"></div>
+      <div class="mt-4">
+        <button onclick="saveChanges()" id="saveBtn" class="btn btn-save-custom w-100">Save</button>
+      </div>
+    </div>
+
+    <div id="status" class="mt-3 text-center loading hidden">
+      <div class="spinner-border spinner-border-sm text-primary" role="status"></div> Processing...
+    </div>
+  </div>
 
   <script>
-    let appData = {};
-    let taxCompaniesData = [];
-    let receiptCompaniesData = [];
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLogcmQxxIFKfNS4hnblAtOC6ufhv0ZQHbPjGDLOI4YAsOsjoXj79ZZOCrXQpLl-_30Q/exec"; 
+    
+    let currentTeamId = "";
+    let fieldMapping = [];
+    let loggedEmail = "";
+    let currentConfig = null;
+    let slideTimers = {};
 
-    /** อ่านข้อมูลที่ Apps Script ใส่มา (ถ้าเปิดผ่าน GitHub จะได้ null แล้วไปดึงผ่าน API แทน) */
-    function readServerPayload() {
-      try {
-        const raw = (document.getElementById('serverPayload')?.textContent || '').trim();
-        if (!raw || raw.charAt(0) !== '{') return null;
-        return JSON.parse(raw);
-      } catch (e) {
-        return null;
+    let currentTeamCategory = "";
+    let currentTeamMinYear = 2010;
+    let currentTeamMaxYear = 2020;
+    let adminEventCategories = {}; 
+
+    function showStatus(show) {
+      document.getElementById('status').classList.toggle('hidden', !show);
+    }
+
+    // ป้องกันข้อมูลที่มีเครื่องหมาย " ' < > ทำให้ฟอร์มพัง
+    function escapeHtml(v) {
+      return String(v === null || v === undefined ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function formatThaiDateTime(dateStr) {
+      if (!dateStr) return "-";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      const yearBE = d.getFullYear() + 543;
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const seconds = String(d.getSeconds()).padStart(2, '0');
+      return `${day}/${month}/${yearBE} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // รอผลไม่เกินเวลาที่กำหนด เพื่อไม่ให้หน้าจอค้างหมุนไม่หยุด
+    function withTimeout(promise, ms) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('หมดเวลารอการตอบกลับจากเซิร์ฟเวอร์')), ms))
+      ]);
+    }
+
+    async function apiCall(action, payload = {}) {
+      const requestData = { action, ...payload };
+      
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler((err) => reject(new Error(err.message || err)))[action](...Object.values(payload));
+        });
+      } else {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(requestData)
+        });
+        const raw = await response.text();
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          throw new Error('เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง (HTTP ' + response.status + ')');
+        }
       }
     }
 
-    /** แสดงรูปแบนเนอร์ใต้หัวข้อสีเขียว (ซ่อนเองถ้าโหลดรูปไม่ได้) */
-    function showBanner(url) {
-      const img = document.getElementById('imgBanner');
-      if (!img || !url) return;
-      img.onload = () => { img.style.display = 'block'; };
-      img.onerror = () => { img.style.display = 'none'; };
-      img.src = url;
+    function getBuddhistYearText(val) {
+      if (!val) return "";
+      let year = 0;
+      if (val.includes('/')) {
+        const parts = val.split('/');
+        if (parts.length === 3) year = parseInt(parts[2], 10);
+      } else if (val.includes('-')) {
+        const parts = val.split('-');
+        if (parts.length === 3) year = parseInt(parts[0], 10);
+      }
+      if (!year || isNaN(year)) return "";
+      if (year < 2400) year += 543; 
+      return `(พ.ศ. ${year})`;
     }
 
-    /** กันข้อความจากชีตไปแทรก HTML ในหน้าเว็บ */
-    function esc(s) {
-      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    function onDateInputChanged(index) {
+      const input = document.getElementById('input_' + index);
+      const beElem = document.getElementById('be_year_' + index);
+      if (input && beElem) {
+        beElem.innerText = getBuddhistYearText(input.value);
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const p = readServerPayload();
-      if (p && p.data && p.data.success) {
-        appData = p.data;
-        taxCompaniesData = p.taxCompanies || [];
-        receiptCompaniesData = p.receiptCompanies || [];
-        if (p.eventName) document.getElementById('txtEventSub').innerText = p.eventName;
-        showBanner(p.bannerUrl);
-        renderUI();
-      } else if (p && p.data && p.data.success === false) {
-        Swal.fire('เกิดข้อผิดพลาด', p.data.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
+    // ==========================================
+    // ตารางปฏิทินเทียบ พ.ศ. - ค.ศ. (ย้อนหลัง 50 ปี)
+    // ==========================================
+    function showYearComparisonModal() {
+      const currentYearAD = new Date().getFullYear();
+      let tableRows = '';
+      
+      for (let y = currentYearAD; y >= currentYearAD - 50; y--) {
+        const be = y + 543;
+        const age = currentYearAD - y;
+        const isEligible = (y >= currentTeamMinYear && y <= currentTeamMaxYear);
+        const rowClass = isEligible ? 'table-success fw-bold' : '';
+        const badge = isEligible ? ' <span class="badge bg-success ms-1" style="font-size: 0.65rem;">🎯 เกณฑ์รับสมัคร</span>' : '';
+
+        tableRows += `
+          <tr class="${rowClass} year-row" data-search="${be} ${y} ${age}">
+            <td class="text-center">${be}</td>
+            <td class="text-center">${y}</td>
+            <td class="text-center">${age} ปี ${badge}</td>
+          </tr>
+        `;
+      }
+
+      const htmlContent = `
+        <div class="text-start mb-2">
+          <input type="text" id="yearSearchInput" class="form-control form-control-sm" 
+                 placeholder="🔍 พิมพ์ค้นหา เช่น 2555 หรือ 2012..." onkeyup="filterYearTable()">
+        </div>
+        ${currentTeamCategory ? `
+          <div class="alert alert-info py-1 px-2 mb-2 text-start" style="font-size: 0.75rem;">
+            🎯 <strong>เกณฑ์ปัจจุบัน (${escapeHtml(currentTeamCategory)}):</strong> ค.ศ. ${currentTeamMinYear} - ${currentTeamMaxYear} (พ.ศ. ${currentTeamMinYear + 543} - ${currentTeamMaxYear + 543})
+          </div>
+        ` : ''}
+        <div style="max-height: 380px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 6px;">
+          <table class="table table-sm table-striped table-hover mb-0 text-center" style="font-size: 0.85rem;" id="yearCompareTable">
+            <thead class="sticky-top" style="z-index: 1;">
+              <tr class="table-primary text-primary">
+                <th style="width: 35%;">พ.ศ.</th>
+                <th style="width: 35%;">ค.ศ.</th>
+                <th style="width: 30%;">อายุ (ปี)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      Swal.fire({
+        title: '📅 ตารางเทียบ พ.ศ. - ค.ศ.',
+        html: htmlContent,
+        width: '480px',
+        showCloseButton: true,
+        confirmButtonText: 'ปิดหน้าต่าง',
+        confirmButtonColor: '#1a237e'
+      });
+    }
+
+    window.filterYearTable = function() {
+      const val = document.getElementById('yearSearchInput').value.trim().toLowerCase();
+      const rows = document.querySelectorAll('#yearCompareTable .year-row');
+      rows.forEach(r => {
+        const data = r.getAttribute('data-search').toLowerCase();
+        r.style.display = data.includes(val) ? '' : 'none';
+      });
+    };
+
+    function renderMediaComponent(targetContainerId, urls, mode) {
+      const container = document.getElementById(targetContainerId);
+      if (!container) return;
+
+      if (slideTimers[targetContainerId]) {
+        clearInterval(slideTimers[targetContainerId]);
+        delete slideTimers[targetContainerId];
+      }
+
+      const validUrls = (Array.isArray(urls) && urls.length > 0) 
+        ? urls.filter(u => String(u).trim() !== '') 
+        : ['https://img2.pic.in.th/Banner-CARC-2026.jpg'];
+
+      const isLogo = (mode === 'LOGO');
+      const containerClass = isLogo ? 'logo-mode-container' : 'banner-mode-container';
+      const imgClass = isLogo ? 'logo-slide-img' : 'banner-slide-img';
+
+      let html = `<div class="${containerClass}" id="box_${targetContainerId}">`;
+      
+      if (validUrls.length === 1) {
+        html += `<img src="${escapeHtml(validUrls[0])}" alt="Display Media" class="${imgClass}">`;
       } else {
-        fetchDataFromApi();
+        html += `<img id="slideImg_${targetContainerId}" src="${escapeHtml(validUrls[0])}" alt="Display Media" class="${imgClass}">`;
+        html += `<div class="slide-dots">`;
+        validUrls.forEach((_, idx) => {
+          html += `<div class="slide-dot ${idx === 0 ? 'active' : ''}" onclick="switchSlide('${targetContainerId}', ${idx})"></div>`;
+        });
+        html += `</div>`;
+      }
+      
+      html += `</div>`;
+      container.innerHTML = html;
+
+      if (validUrls.length > 1) {
+        let currentIdx = 0;
+        slideTimers[targetContainerId] = setInterval(() => {
+          currentIdx = (currentIdx + 1) % validUrls.length;
+          setSlideImage(targetContainerId, validUrls, currentIdx);
+        }, 3500);
+      }
+    }
+
+    function setSlideImage(targetContainerId, urls, idx) {
+      const img = document.getElementById(`slideImg_${targetContainerId}`);
+      if (!img) return;
+      img.style.opacity = '0.2';
+      setTimeout(() => {
+        img.src = urls[idx];
+        img.style.opacity = '1';
+      }, 250);
+
+      const dots = document.querySelectorAll(`#box_${targetContainerId} .slide-dot`);
+      dots.forEach((dot, dIdx) => {
+        dot.classList.toggle('active', dIdx === idx);
+      });
+    }
+
+    window.switchSlide = function(targetContainerId, targetIdx) {
+      if (currentConfig && currentConfig.bannerUrls) {
+        setSlideImage(targetContainerId, currentConfig.bannerUrls, targetIdx);
+      }
+    };
+
+    function applyMediaToAllScreens(config) {
+      currentConfig = config;
+      const urls = (config.bannerUrls && config.bannerUrls.length > 0) ? config.bannerUrls : [config.bannerUrl];
+      const mode = config.imageMode || 'BANNER';
+      
+      renderMediaComponent('outsideMediaContainer', urls, mode);
+      renderMediaComponent('mainMediaContainer', urls, mode);
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      let cachedConfig = null, cachedStatus = null;
+      try {
+        cachedConfig = localStorage.getItem('APP_CFG_CACHE');
+        cachedStatus = localStorage.getItem('APP_STATUS_CACHE');
+      } catch (e) {}
+      
+      if (cachedConfig) {
+        try {
+          const cfg = JSON.parse(cachedConfig);
+          applyMediaToAllScreens(cfg);
+          document.getElementById('noteTextDisplay').innerText = cfg.noteText || "";
+          
+          if (cachedStatus === "NOT_OPEN") {
+            document.getElementById('outsideTitle').innerText = "ระบบยังไม่เปิดใช้งาน";
+            document.getElementById('outsideSubtitle').innerHTML = `ท่านสามารถเข้าใช้งานได้ในวันที่: <strong>${formatThaiDateTime(cfg.openDate)}</strong>`;
+            document.getElementById('outsideSystemSection').classList.remove('hidden');
+          } else if (cachedStatus === "CLOSED") {
+            document.getElementById('outsideTitle').innerText = "ขออภัย.. สิ้นสุดการแก้ไขข้อมูลแล้ว";
+            document.getElementById('outsideSubtitle').innerHTML = `ระบบปิดให้แก้ไขแล้ว เมื่อวันที่: <strong>${formatThaiDateTime(cfg.closeDate)}</strong>`;
+            document.getElementById('outsideSystemSection').classList.remove('hidden');
+          } else {
+            document.getElementById('mainContentCard').classList.remove('hidden');
+          }
+        } catch(e) {}
+      } else {
+        document.getElementById('mainContentCard').classList.remove('hidden');
+      }
+
+      try {
+        const res = await apiCall("getInitialData");
+        if (res && res.config) {
+          try {
+            localStorage.setItem('APP_CFG_CACHE', JSON.stringify(res.config));
+            localStorage.setItem('APP_STATUS_CACHE', res.systemStatus);
+          } catch (e) {}
+
+          applyMediaToAllScreens(res.config);
+          document.getElementById('noteTextDisplay').innerText = res.config.noteText || "";
+
+          if (res.systemStatus === "NOT_OPEN") {
+            document.getElementById('outsideTitle').innerText = "ระบบยังไม่เปิดใช้งาน";
+            document.getElementById('outsideSubtitle').innerHTML = `ท่านสามารถเข้าใช้งานได้ในวันที่: <strong>${formatThaiDateTime(res.config.openDate)}</strong>`;
+            document.getElementById('outsideSystemSection').classList.remove('hidden');
+            document.getElementById('mainContentCard').classList.add('hidden');
+          } else if (res.systemStatus === "CLOSED") {
+            document.getElementById('outsideTitle').innerText = "ขออภัย.. สิ้นสุดการแก้ไขข้อมูลแล้ว";
+            document.getElementById('outsideSubtitle').innerHTML = `ระบบปิดให้แก้ไขแล้ว เมื่อวันที่: <strong>${formatThaiDateTime(res.config.closeDate)}</strong>`;
+            document.getElementById('outsideSystemSection').classList.remove('hidden');
+            document.getElementById('mainContentCard').classList.add('hidden');
+          } else {
+            document.getElementById('outsideSystemSection').classList.add('hidden');
+            document.getElementById('mainContentCard').classList.remove('hidden');
+          }
+        }
+      } catch (e) { 
+        console.error("Initialization Error:", e);
       }
     });
 
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(param) || '';
-    }
-
-    function fetchDataFromApi() {
-      const teamId = getQueryParam('teamId');
-      const userId = getQueryParam('userId');
-
-      Swal.fire({
-        title: 'กำลังโหลดข้อมูล...',
-        text: 'กรุณารอสักครู่ ระบบกำลังดึงข้อมูลทีม',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
+    async function promptAdminLogin() {
+      const { value: email } = await Swal.fire({
+        title: '⚙️ ระบบผู้ดูแลระบบ',
+        input: 'email',
+        inputLabel: 'กรุณากรอกอีเมลผู้ดูแลระบบเพื่อเข้าสู่การตั้งค่า',
+        inputPlaceholder: 'example@email.com',
+        showCancelButton: true,
+        confirmButtonText: 'เข้าสู่ระบบ',
+        cancelButtonText: 'ยกเลิก'
       });
 
-      const fetchUrl = `${GAS_WEB_APP_URL}?action=getData&teamId=${encodeURIComponent(teamId)}&userId=${encodeURIComponent(userId)}`;
-
-      fetch(fetchUrl)
-        .then(res => res.json())
-        .then(res => {
-          Swal.close();
-          if (res && res.data && res.data.success) {
-            appData = res.data;
-            taxCompaniesData = res.taxCompanies || [];
-            receiptCompaniesData = res.receiptCompanies || [];
-            if (res.eventName) document.getElementById('txtEventSub').innerText = res.eventName;
-            showBanner(res.bannerUrl);
-            renderUI();
-          } else {
-            Swal.fire('เกิดข้อผิดพลาด', res?.data?.message || 'ไม่สามารถโหลดข้อมูลทีมได้', 'error');
-          }
-        })
-        .catch(err => {
-          Swal.close();
-          console.error('Fetch error:', err);
-          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบได้ กรุณาลองใหม่อีกครั้ง', 'error');
-        });
-    }
-
-    function renderUI() {
-      const container = document.getElementById('formContainer');
-      if (!container) return;
-
-      if (appData.isPaid) {
-        renderPaidStatusUI(container);
-      } else {
-        renderFormUI(container);
+      if (email) {
+        document.getElementById('email').value = email;
+        await login(true);
       }
     }
 
-    function renderPaidStatusUI(container) {
-      let teamsListHtml = '';
-      if (appData.paidTeamsList && appData.paidTeamsList.length > 0) {
-        appData.paidTeamsList.forEach(team => {
-          const st = String(team.statusStamp || 'Waiting').trim();
-          let badgeHtml = '';
-          if (st.toLowerCase() === 'confirm' || st === 'ชำระเงินเรียบร้อยแล้ว') {
-            badgeHtml = `<span class="badge bg-success text-white px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i>Confirm</span>`;
-          } else if (st.toLowerCase() === 'cancel' || st.toLowerCase() === 'reject' || st === 'ยกเลิก' || st === 'ไม่ผ่าน') {
-            badgeHtml = `<span class="badge bg-danger text-white px-2 py-1"><i class="fa-solid fa-circle-xmark me-1"></i>Cancel</span>`;
-          } else {
-            badgeHtml = `<span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Waiting</span>`;
-          }
+    let adminImageSlots = [];
 
-          teamsListHtml += `
-            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-              <div class="me-2 text-truncate text-start">
-                <div>
-                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span>
-                  <strong class="text-dark small">${esc(team.teamName)}</strong>
-                </div>
-                <div class="text-muted" style="font-size: 0.78rem;">
-                  ${esc(team.categoryText || '-')} | ${esc(team.institution || '-')}
-                </div>
-              </div>
-              <div>${badgeHtml}</div>
-            </div>
-          `;
-        });
-      }
-
-      container.innerHTML = `
-        <div class="card p-4 text-center border-success bg-white rounded-4 my-4 shadow-sm">
-          <div class="mb-3">
-            <i class="fa-solid fa-circle-check text-success" style="font-size: 3.5rem;"></i>
-          </div>
-          <h4 class="fw-bold text-success mb-2">ยืนยันสลิปชำระเงินเรียบร้อยแล้ว</h4>
-          <p class="text-secondary mb-3 fs-6">
-            รายการทีมทั้งหมดที่คุณได้ทำรายการยืนยันสลิปชำระเงิน
-          </p>
-
-          <div class="p-3 bg-light rounded-3 text-start mb-3 w-100 border">
-            <div class="small text-muted mb-2">
-              <strong><i class="fa-solid fa-list-check me-1"></i> รายการทีมและสถานะการชำระเงิน (${appData.paidTeamsList ? appData.paidTeamsList.length : 1} ทีม) :</strong>
-            </div>
-            <div class="list-group list-group-flush rounded-2 border">
-              ${teamsListHtml}
-            </div>
-          </div>
-          <div class="text-primary small fw-medium">
-            <i class="fa-solid fa-circle-info me-1"></i> ท่านสามารถปิดหน้าต่างเบราว์เซอร์นี้ได้ทันที
-          </div>
-        </div>
-      `;
+    function renderAdminImageSlots(urls) {
+      adminImageSlots = (urls && urls.length > 0) ? [...urls].slice(0, 3) : ['https://img2.pic.in.th/Banner-CARC-2026.jpg'];
+      refreshImageSlotsUI();
     }
 
-    function renderFormUI(container) {
-      const isNoTeamMode = appData.noTeamIdMode;
-
-      let otherTeamsRowsHtml = '';
-      if (appData.otherTeams && appData.otherTeams.length > 0) {
-        appData.otherTeams.forEach((team, index) => {
-          otherTeamsRowsHtml += `
-            <div class="form-check p-2 extra-team-item d-flex align-items-center justify-content-between"
-                 data-agegroup="${esc(team.ageGroup || '')}"
-                 data-searchtext="${esc(team.teamId + ' ' + team.teamName + ' ' + team.institution)}">
-              <div class="d-flex align-items-center gap-2">
-                <input class="form-check-input extra-team-check ms-1 cursor-pointer" type="checkbox"
-                       id="extraTeam_${index}"
-                       data-teamid="${esc(team.teamId)}"
-                       data-teamname="${esc(team.teamName)}"
-                       data-category="${esc(team.categoryText)}"
-                       data-institution="${esc(team.institution)}"
-                       data-amount="${Number(team.amountValue) || 0}"
-                       onchange="calculateTotalAmount()">
-                <label class="form-check-label text-dark cursor-pointer ms-1 small" for="extraTeam_${index}">
-                  <span class="badge bg-secondary me-1">${esc(team.teamId)}</span> <strong>${esc(team.teamName)}</strong>
-                  <div class="text-muted" style="font-size: 0.78rem;">${esc(team.categoryText)} - ${esc(team.institution)}</div>
-                </label>
-              </div>
-              <div class="text-end fw-bold text-success pe-2 small" style="white-space: nowrap;">
-                +${esc(team.formattedAmount)} ฿
-              </div>
+    function refreshImageSlotsUI() {
+      const container = document.getElementById('imageSlotsContainer');
+      let html = '';
+      
+      adminImageSlots.forEach((url, i) => {
+        html += `
+          <div class="image-slot-card d-flex align-items-center gap-2">
+            <img src="${escapeHtml(url || 'https://via.placeholder.com/50')}" id="preview_slot_${i}" class="image-preview-mini">
+            <div class="flex-grow-1">
+              <input type="text" class="form-control form-control-sm img-slot-url" id="url_slot_${i}" 
+                     placeholder="ระบุ URL รูปภาพที่ ${i+1}" value="${escapeHtml(url)}" oninput="updateSlotPreview(${i})">
             </div>
-          `;
-        });
-      } else {
-        otherTeamsRowsHtml = `<div class="text-muted small text-center py-2"><i class="fa-solid fa-circle-info me-1"></i> ไม่พบรายการทีมในระบบ</div>`;
-      }
-
-      container.innerHTML = `
-        <form id="paymentSubmitForm" onsubmit="handleFormSubmit(event)">
-          <!-- Section 1: ข้อมูลทีม -->
-          <section class="card">
-            <div class="section-title">
-              <i class="fa-solid fa-users-viewfinder fs-5"></i> ข้อมูลทีมที่ต้องการชำระเงิน
-            </div>
-
-            ${!isNoTeamMode ? `
-              <div class="key-data-card" id="keyDataCard">
-                <div class="data-grid">
-                  <div class="data-item">
-                    <span class="info-label">Key Data / ทีมไอดี (ทีมหลัก)</span>
-                    <div><span class="team-id-badge">${esc(appData.teamId)}</span></div>
-                  </div>
-                  <div class="data-item">
-                    <span class="info-label">รุ่นอายุ / หมวดหมู่ (Category)</span>
-                    <div class="info-value">${esc(appData.categoryText || '-')}</div>
-                  </div>
-                  <div class="data-item full-width">
-                    <span class="info-label">ชื่อทีม (Team Name)</span>
-                    <div class="info-value">${esc(appData.teamName)}</div>
-                  </div>
-                  <div class="data-item full-width">
-                    <span class="info-label">สถาบัน / หน่วยงาน (Institution)</span>
-                    <div class="info-value">${esc(appData.institution)}</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mb-3 p-3 bg-light border rounded-3" id="toggleExtraTeamsWrapper">
-                <div class="form-check m-0">
-                  <input class="form-check-input cursor-pointer" type="checkbox" id="toggleExtraTeams" onchange="toggleExtraTeamsSection()">
-                  <label class="form-check-label fw-semibold text-success small cursor-pointer" for="toggleExtraTeams">
-                    <i class="fa-solid fa-square-plus me-1"></i> ต้องการชำระเงินรวมหลายทีม
-                    <span class="text-muted fw-normal ms-1">(พบอีก ${appData.otherTeams ? appData.otherTeams.length : 0} ทีมของคุณในระบบ)</span>
-                  </label>
-                </div>
-              </div>
-            ` : ''}
-
-            <!-- ตารางเลือกทีม -->
-            <div id="extraTeamsContainer" class="${isNoTeamMode ? '' : 'd-none'} p-3 bg-light border rounded-3 mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="small text-muted fw-semibold" id="txtSelectTeamHeader">${isNoTeamMode ? 'โปรดเลือกรายการทีมที่ต้องการชำระเงิน:' : 'เลือกทีมที่ต้องการรวมสลิปชำระเงิน:'}</span>
-                <span class="badge bg-success text-white" id="selectedCountBadge">เลือกแล้ว 0 ทีม</span>
-              </div>
-
-              <div class="row g-2 mb-2">
-                <div class="col-12 col-sm-6">
-                  <select id="filterCategorySelect" class="form-select form-select-sm rounded-3" onchange="filterTeams()">
-                    <option value="">-- ประเภทการแข่งขัน (Category) --</option>
-                  </select>
-                </div>
-                <div class="col-12 col-sm-6">
-                  <input type="text" id="searchTeamInput" class="form-control form-control-sm rounded-3" placeholder="🔍 ค้นหาชื่อทีม / ID..." onkeyup="filterTeams()">
-                </div>
-              </div>
-              <div class="extra-teams-scroll-box p-1">
-                ${otherTeamsRowsHtml}
-              </div>
-            </div>
-
-            <div id="selectedTeamsTableCard" class="summary-table-card p-3 mb-3 d-none">
-              <div class="fw-semibold text-success mb-2 small d-flex justify-content-between align-items-center">
-                <span><i class="fa-solid fa-table-list me-1"></i> รายการทีมทั้งหมดที่จะชำระเงินรวม (<span id="summaryTeamCountText">0</span> ทีม) :</span>
-              </div>
-              <div class="table-responsive">
-                <table class="table table-sm table-bordered table-hover align-middle mb-0" style="font-size: 0.84rem;">
-                  <thead class="table-light text-secondary">
-                    <tr class="text-center">
-                      <th style="width: 40px;">#</th>
-                      <th style="width: 100px;">Team ID</th>
-                      <th style="width: 200px;">Team Name</th>
-                      <th>Institution</th>
-                    </tr>
-                  </thead>
-                  <tbody id="selectedTeamsTableBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="amount-card">
-              <span class="amount-label" id="amountSummaryLabel">ยอดเงินที่ต้องชำระทั้งหมด</span>
-              <div class="amount-value" id="totalAmountDisplay">${esc(appData.formattedAmount || '0')} <small>บาท</small></div>
-            </div>
-          </section>
-
-          <!-- Section 2: ช่องทางชำระเงิน -->
-          <div class="card-modern">
-            <div class="section-title">
-              <i class="fa-solid fa-wallet fs-5"></i> เลือกช่องทางชำระเงิน
-            </div>
-            <div class="row g-3 mb-3">
-              <div class="col-12 col-sm-6">
-                <input type="radio" class="btn-check" name="payMethod" id="payMethodQr" value="qr" checked onchange="togglePayMethod()">
-                <label class="pay-option w-100" for="payMethodQr">
-                  <i class="fa-solid fa-qrcode fs-3 text-success"></i>
-                  <div>
-                    <div class="fw-semibold">สแกน QR Code</div>
-                    <div class="small text-muted">รองรับทุกแอปธนาคาร</div>
-                  </div>
-                </label>
-              </div>
-              <div class="col-12 col-sm-6">
-                <input type="radio" class="btn-check" name="payMethod" id="payMethodBank" value="bank" onchange="togglePayMethod()">
-                <label class="pay-option w-100" for="payMethodBank">
-                  <i class="fa-solid fa-building-columns fs-3 text-success"></i>
-                  <div>
-                    <div class="fw-semibold">โอนผ่านบัญชีธนาคาร</div>
-                    <div class="small text-muted">โอนผ่านเลขบัญชี</div>
-                  </div>
-                </label>
-              </div>
-            </div>
-            <div id="qrSection" class="text-center p-3 bg-light rounded-3">
-              <img id="qrImage" src="http://gammaco.co.th/marketingform/wp-content/uploads/2025/04/Blank.png" alt="QR Code" class="img-fluid rounded-3" style="max-width: 220px;">
-              <div class="small text-muted mt-2">สแกนชำระเงินผ่านระบบ PromptPay</div>
-            </div>
-            <div id="bankSection" class="p-3 bg-light rounded-3 d-none">
-              <div class="d-flex align-items-center gap-3">
-                <img src="https://img2.pic.in.th/270746805_10161735880783916_2146008855314507829_n.jpeg" alt="Krung Thai Bank" style="width: 70px; height: auto; margin-top: 10px;">
-                <div>
-                  <div class="fw-bold">ธนาคารกรุงไทย</div>
-                  <div>ชื่อบัญชี: บริษัท แกมมาโก้ (ประเทศไทย) จำกัด</div>
-                  <div class="fw-bold text-success fs-5">เลขที่บัญชี: 980-2-99645-9</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 3: อัปโหลดสลิป -->
-          <div class="card-modern">
-            <div class="section-title">
-              <i class="fa-solid fa-file-arrow-up fs-5"></i> แนบหลักฐานการโอนเงิน (Slip)<span class="text-danger">*</span>
-            </div>
-            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-              <i class="fa-solid fa-cloud-arrow-up fs-1 text-success mb-2" id="uploadIcon"></i>
-              <div class="fw-semibold" id="uploadTitle">คลิกเพื่ออัปโหลดไฟล์ หรือลากไฟล์มาวางที่นี่</div>
-              <div class="small text-muted">รองรับไฟล์รูปภาพ PNG, JPG, JPEG (จำเป็นต้องแนบ)</div>
-              <input type="file" id="fileInput" accept="image/*" class="d-none" onchange="previewFile(this)">
-              <img id="previewImage" class="preview-img d-none" alt="Slip Preview">
-              <div class="slip-name d-none" id="slipName"></div>
-            </div>
-          </div>
-
-          <!-- Section 4: ข้อมูลติดต่อ & การออกเอกสาร -->
-          <div class="card-modern">
-            <div class="form-section-header">
-              <i class="fa-solid fa-caret-right text-dark"></i> ข้อมูลติดต่อ :
-            </div>
-            <div class="row g-3">
-              <div class="col-12 col-md-4">
-                <label class="form-label small text-dark"><i class="fa-solid fa-user me-1"></i> ชื่อ-สกุล<span class="text-danger">*</span></label>
-                <input type="text" id="contactName" class="form-control rounded-3" placeholder="ชื่อ-นามสกุล" required>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label small text-dark"><i class="fa-solid fa-phone me-1"></i> เบอร์โทรศัพท์<span class="text-danger">*</span></label>
-                <input type="tel" id="contactPhone" class="form-control rounded-3" placeholder="เบอร์โทรศัพท์ที่สามารถติดต่อได้" required>
-              </div>
-              <div class="col-12 col-md-4">
-                <label class="form-label small text-dark"><i class="fa-brands fa-line me-1"></i> ไลน์ไอดี</label>
-                <input type="text" id="contactLine" class="form-control rounded-3" placeholder="Line ID">
-              </div>
-            </div>
-
-            <div class="form-section-header mt-4">
-              <i class="fa-solid fa-caret-right text-dark"></i> การออกเอกสาร :
-            </div>
-            <div class="d-flex gap-4 flex-wrap mb-2">
-              <div class="form-check">
-                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docTax" value="ใบกำกับภาษี" onchange="toggleDocForm()">
-                <label class="form-check-label cursor-pointer" for="docTax">ใบกำกับภาษี</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docBill" value="ใบเสร็จรับเงิน" onchange="toggleDocForm()">
-                <label class="form-check-label cursor-pointer" for="docBill">ใบเสร็จรับเงิน</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input cursor-pointer" type="radio" name="docType" id="docNone" value="ไม่ต้องการ" onchange="toggleDocForm()" checked>
-                <label class="form-check-label cursor-pointer" for="docNone">ไม่ต้องการ</label>
-              </div>
-            </div>
-
-            <div id="taxHistorySection" class="mt-3 d-none">
-              <div class="form-section-header">
-                <i class="fa-solid fa-caret-right text-dark"></i> บริษัทของท่าน เคยออกใบกำกับภาษี/ใบเสร็จรับเงิน กับทางบริษัทฯ แล้วหรือไม่
-              </div>
-              <div class="d-flex gap-4 flex-wrap mb-3">
-                <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyYes" value="เคย" onchange="onTaxHistoryChange()">
-                    <label class="form-check-label cursor-pointer" for="historyYes">เคย</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="taxHistory" id="historyNo" value="ไม่เคย" onchange="onTaxHistoryChange()" checked>
-                    <label class="form-check-label cursor-pointer" for="historyNo">ไม่เคย</label>
-                </div>
-              </div>
-            </div>
-
-            <div id="companyInfoSection" class="row g-3 mt-1 d-none">
-              <div class="col-12 col-md-6">
-                <label class="form-label small text-dark"><i class="fa-regular fa-building me-1"></i> ชื่อบริษัท / หน่วยงาน</label>
-                <div id="companyContainer">
-                  <input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">
-                </div>
-              </div>
-              <div class="col-12 col-md-6" id="taxIdBox">
-                <label class="form-label small text-dark"><i class="fa-regular fa-id-card me-1"></i> เลขประจำตัวผู้เสียภาษี</label>
-                <input type="text" id="taxId" class="form-control rounded-3" maxlength="20" placeholder="ระบุเลขที่ผู้เสียภาษี">
-              </div>
-              <div class="col-12" id="taxAddressBox">
-                <label class="form-label small text-dark"><i class="fa-solid fa-map-location-dot me-1"></i> ที่อยู่</label>
-                <textarea id="taxAddress" class="form-control rounded-3" rows="2" placeholder="โปรดระบุที่อยู่"></textarea>
-              </div>
-            </div>
-
-            <div id="deliverySection" class="mt-4 d-none">
-              <div class="form-section-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <span><i class="fa-solid fa-house me-1"></i> การจัดส่งเอกสาร</span>
-                <div class="form-check m-0">
-                  <input class="form-check-input cursor-pointer" type="checkbox" id="copyContactInfo" onchange="copyContactToRecipient()">
-                  <label class="form-check-label text-success fw-semibold small cursor-pointer" for="copyContactInfo">
-                    <i class="fa-solid fa-copy me-1"></i> ใช้ชื่อและเบอร์โทรตามข้อมูลติดต่อด้านบน
-                  </label>
-                </div>
-              </div>
-              <div class="d-flex gap-4 flex-wrap mb-3">
-                <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="deliveryType" id="delDocAddr" value="จัดส่งตามที่อยู่เอกสาร" onchange="toggleDocForm()" checked>
-                  <label class="form-check-label cursor-pointer" for="delDocAddr">จัดส่งตามที่อยู่เอกสาร</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input cursor-pointer" type="radio" name="deliveryType" id="delNewAddr" value="ที่อยู่ใหม่" onchange="toggleDocForm()">
-                  <label class="form-check-label cursor-pointer" for="delNewAddr">ที่อยู่ใหม่</label>
-                </div>
-              </div>
-              <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  <label class="form-label small text-dark"><i class="fa-solid fa-user me-1"></i> ชื่อ-สกุล (ผู้รับเอกสาร)</label>
-                  <input type="text" id="recipientName" class="form-control rounded-3" placeholder="Name">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label small text-dark"><i class="fa-solid fa-mobile-screen-button me-1"></i> เบอร์โทรศัพท์ติดต่อ</label>
-                  <input type="tel" id="recipientPhone" class="form-control rounded-3" placeholder="เบอร์โทร">
-                </div>
-                <div class="col-12 d-none" id="deliveryAddressBox">
-                  <label class="form-label small text-dark"><i class="fa-solid fa-location-dot me-1"></i> ที่อยู่จัดส่ง</label>
-                  <textarea id="deliveryAddress" class="form-control rounded-3" rows="2" placeholder="Address"></textarea>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 5: ยืนยันข้อมูล -->
-          <div class="card-modern">
-            <div class="text-danger small fw-semibold mb-2">* โปรดตรวจสอบความถูกต้องก่อนทำการส่งข้อมูล</div>
-            <div class="form-check">
-              <input class="form-check-input cursor-pointer" type="checkbox" id="confirmData" required>
-              <label class="form-check-label fw-semibold text-dark cursor-pointer" for="confirmData">
-                <i class="fa-regular fa-circle-check text-success me-1"></i> ข้าพเจ้าได้กรอกข้อมูลครบถ้วนแล้ว
+            <div>
+              <label class="btn btn-secondary btn-sm mb-0 py-1" style="font-size: 0.75rem; cursor: pointer;">
+                📁 อัปโหลด
+                <input type="file" accept="image/*" class="d-none" onchange="uploadImageFromDevice(event, ${i})">
               </label>
+              ${adminImageSlots.length > 1 ? `
+                <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2" onclick="removeImageSlot(${i})">🗑️</button>
+              ` : ''}
             </div>
-            <button type="submit" class="btn-submit">
-              <i class="fa-solid fa-paper-plane me-2"></i> บันทึก
-            </button>
           </div>
-        </form>
-      `;
-
-      initCategoryFilter();
-      calculateTotalAmount();
-      toggleDocForm();
-      initDropZone();
-
-      document.getElementById('contactName')?.addEventListener('input', () => {
-        if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
+        `;
       });
-      document.getElementById('contactPhone')?.addEventListener('input', () => {
-        if (document.getElementById('copyContactInfo')?.checked) copyContactToRecipient();
-      });
+
+      container.innerHTML = html;
+      document.getElementById('btnAddSlot').style.display = (adminImageSlots.length >= 3) ? 'none' : 'inline-block';
     }
 
-    function toggleExtraTeamsSection() {
-      const mainToggle = document.getElementById('toggleExtraTeams');
-      const container = document.getElementById('extraTeamsContainer');
-      if (!container) return;
-      if (mainToggle && mainToggle.checked) {
-        container.classList.remove('d-none');
-      } else {
-        container.classList.add('d-none');
-        const extraChecks = document.querySelectorAll('.extra-team-check');
-        extraChecks.forEach(chk => { chk.checked = false; });
-      }
-      calculateTotalAmount();
-    }
-
-    /** สร้างตัวเลือก Dropdown จากค่า Age Group ของทีมที่มีในรายการ */
-    function initCategoryFilter() {
-      const select = document.getElementById('filterCategorySelect');
-      if (!select) return;
-      const ageGroups = new Set();
-      document.querySelectorAll('.extra-team-item').forEach(item => {
-        const age = (item.dataset.agegroup || '').trim();
-        if (age) ageGroups.add(age);
-      });
-      [...ageGroups]
-        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
-        .forEach(age => {
-          const opt = document.createElement('option');
-          opt.value = age;
-          opt.textContent = age;
-          select.appendChild(opt);
-        });
-    }
-
-    /** กรองรายการทีมตาม Age Group และคำค้นหา */
-    function filterTeams() {
-      const ageVal = (document.getElementById('filterCategorySelect')?.value || '').toLowerCase();
-      const searchVal = (document.getElementById('searchTeamInput')?.value || '').toLowerCase().trim();
-      document.querySelectorAll('.extra-team-item').forEach(item => {
-        const itemAge = (item.dataset.agegroup || '').toLowerCase();
-        const itemText = (item.dataset.searchtext || '').toLowerCase();
-        const matchAge = !ageVal || itemAge === ageVal;
-        const matchSearch = !searchVal || itemText.includes(searchVal);
-        const show = matchAge && matchSearch;
-        item.classList.toggle('d-none', !show);
-        item.classList.toggle('d-flex', show);
-      });
-    }
-
-    function calculateTotalAmount() {
-      let totalAmount = appData.noTeamIdMode ? 0 : Number(appData.amountValue || 0);
-      let teamCount = appData.noTeamIdMode ? 0 : 1;
-      let selectedTeamsList = [];
-
-      if (!appData.noTeamIdMode && appData.teamId) {
-        selectedTeamsList.push({
-          teamId: appData.teamId,
-          teamName: appData.teamName,
-          categoryText: appData.categoryText,
-          institution: appData.institution,
-          amount: Number(appData.amountValue || 0),
-          isPrimary: true
-        });
-      }
-
-      const mainToggle = document.getElementById('toggleExtraTeams');
-      const extraChecks = document.querySelectorAll('.extra-team-check:checked');
-
-      if (appData.noTeamIdMode || (mainToggle && mainToggle.checked)) {
-        extraChecks.forEach(chk => {
-          const amt = Number(chk.dataset.amount || 0);
-          totalAmount += amt;
-          teamCount++;
-          selectedTeamsList.push({
-            teamId: chk.dataset.teamid,
-            teamName: chk.dataset.teamname,
-            categoryText: chk.dataset.category || '-',
-            institution: chk.dataset.institution || '-',
-            amount: amt,
-            isPrimary: false
-          });
-        });
-      }
-
-      const tableCard = document.getElementById('selectedTeamsTableCard');
-      const tbody = document.getElementById('selectedTeamsTableBody');
-      const summaryTeamCountText = document.getElementById('summaryTeamCountText');
-
-      if (tableCard && tbody) {
-        if (selectedTeamsList.length > 0 && (appData.noTeamIdMode || (mainToggle && mainToggle.checked))) {
-          tableCard.classList.remove('d-none');
-          if (summaryTeamCountText) summaryTeamCountText.innerText = teamCount;
-          let rowsHtml = '';
-          selectedTeamsList.forEach((team, idx) => {
-            const primaryBadge = team.isPrimary ? '<span class="badge bg-success ms-1">ทีมหลัก</span>' : '';
-            rowsHtml += `
-              <tr>
-                <td class="text-center fw-bold">${idx + 1}</td>
-                <td class="text-center"><span class="badge bg-secondary">${esc(team.teamId)}</span></td>
-                <td><strong class="text-dark">${esc(team.teamName)}</strong> ${primaryBadge}</td>
-                <td><strong class="text-dark">${esc(team.institution)}</strong></td>
-              </tr>
-            `;
-          });
-          tbody.innerHTML = rowsHtml;
-        } else {
-          tableCard.classList.add('d-none');
-        }
-      }
-
-      const totalDisplay = document.getElementById('totalAmountDisplay');
-      const summaryLabel = document.getElementById('amountSummaryLabel');
-      const badgeCount = document.getElementById('selectedCountBadge');
-
-      if (totalDisplay) {
-        totalDisplay.innerHTML = totalAmount.toLocaleString('th-TH') + ' <small>บาท</small>';
-      }
-      if (summaryLabel) {
-        summaryLabel.innerText = `ยอดเงินที่ต้องชำระทั้งหมด (${teamCount} ทีม)`;
-      }
-      if (badgeCount) {
-        badgeCount.innerText = `เลือกแล้ว ${extraChecks.length} ทีม`;
-      }
-
-      return { totalAmount, teamCount, selectedTeamsList };
-    }
-
-    function togglePayMethod() {
-      const method = document.querySelector('input[name="payMethod"]:checked').value;
-      document.getElementById('qrSection').classList.toggle('d-none', method !== 'qr');
-      document.getElementById('bankSection').classList.toggle('d-none', method !== 'bank');
-    }
-
-    function toggleDocForm() {
-      const docTypeEl = document.querySelector('input[name="docType"]:checked');
-      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
-      const deliveryTypeEl = document.querySelector('input[name="deliveryType"]:checked');
-      const deliveryType = deliveryTypeEl ? deliveryTypeEl.value : 'จัดส่งตามที่อยู่เอกสาร';
-
-      const taxHistorySec = document.getElementById('taxHistorySection');
-      const companyInfoSec = document.getElementById('companyInfoSection');
-      const taxIdBox = document.getElementById('taxIdBox');
-      const taxIdInput = document.getElementById('taxId');
-      const taxAddressBox = document.getElementById('taxAddressBox');
-      const deliverySec = document.getElementById('deliverySection');
-      const deliveryAddressBox = document.getElementById('deliveryAddressBox');
-
-      if (!taxHistorySec || !companyInfoSec || !deliverySec) return;
-
-      if (docType === 'ไม่ต้องการ') {
-        taxHistorySec.classList.add('d-none');
-        companyInfoSec.classList.add('d-none');
-        deliverySec.classList.add('d-none');
-        return;
-      }
-
-      companyInfoSec.classList.remove('d-none');
-      deliverySec.classList.remove('d-none');
-      taxHistorySec.classList.remove('d-none');
-      taxAddressBox.classList.remove('d-none');
-
-      // หากเลือก "ใบเสร็จรับเงิน" ให้ซ่อนช่องเลขประจำตัวผู้เสียภาษี
-      if (docType === 'ใบเสร็จรับเงิน') {
-        if (taxIdBox) taxIdBox.classList.add('d-none');
-        if (taxIdInput) taxIdInput.value = '';
-      } else {
-        if (taxIdBox) taxIdBox.classList.remove('d-none');
-      }
-
-      // อัปเดต Dropdown หรือ Input ของบริษัทตามประเภทเอกสาร
-      onTaxHistoryChange();
-
-      // สลับการแสดงผลที่อยู่จัดส่ง โดยไม่รีเซ็ตค่าบริษัท
-      if (deliveryType === 'ที่อยู่ใหม่') {
-        if (deliveryAddressBox) deliveryAddressBox.classList.remove('d-none');
-      } else {
-        if (deliveryAddressBox) deliveryAddressBox.classList.add('d-none');
+    function addImageSlot() {
+      if (adminImageSlots.length < 3) {
+        adminImageSlots.push('');
+        refreshImageSlotsUI();
       }
     }
 
-    function onTaxHistoryChange() {
-      const docTypeEl = document.querySelector('input[name="docType"]:checked');
-      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
-      const taxHistoryEl = document.querySelector('input[name="taxHistory"]:checked');
-      const taxHistory = taxHistoryEl ? taxHistoryEl.value : 'ไม่เคย';
-
-      const companyContainer = document.getElementById('companyContainer');
-      const taxIdInput = document.getElementById('taxId');
-      const taxAddressInput = document.getElementById('taxAddress');
-
-      if (!companyContainer) return;
-
-      const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
-
-      if (taxHistory === 'เคย') {
-        // สร้าง Dropdown เฉพาะถ้ายังไม่มี <select> อยู่ใน Container
-        const existingSelect = document.getElementById('taxCompanySelect');
-        if (!existingSelect) {
-          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
-                              <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
-          if (activeCompaniesData && activeCompaniesData.length > 0) {
-            activeCompaniesData.forEach((item, index) => {
-              selectHTML += `<option value="${index}">${esc(item.companyName)}</option>`;
-            });
-          }
-          selectHTML += `</select>`;
-          companyContainer.innerHTML = selectHTML;
-          if (taxIdInput) taxIdInput.readOnly = true;
-          if (taxAddressInput) taxAddressInput.readOnly = true;
-          onTaxCompanySelectChange('');
-        }
-      } else {
-        // หากเปลี่ยนเป็น "ไม่เคย" ให้เปลี่ยนช่องเป็น Input ข้อความปกติ
-        companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
-        if (taxIdInput) taxIdInput.readOnly = false;
-        if (taxAddressInput) taxAddressInput.readOnly = false;
+    function removeImageSlot(index) {
+      if (adminImageSlots.length > 1) {
+        adminImageSlots.splice(index, 1);
+        refreshImageSlotsUI();
       }
     }
 
-    function onTaxCompanySelectChange(selectedIndex) {
-      const docTypeEl = document.querySelector('input[name="docType"]:checked');
-      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
-      const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
-
-      const taxIdInput = document.getElementById('taxId');
-      const taxAddressInput = document.getElementById('taxAddress');
-      if (selectedIndex !== "" && activeCompaniesData[selectedIndex]) {
-        const selected = activeCompaniesData[selectedIndex];
-        if (taxIdInput) taxIdInput.value = selected.taxId || '';
-        if (taxAddressInput) taxAddressInput.value = selected.address || '';
-      } else {
-        if (taxIdInput) taxIdInput.value = '';
-        if (taxAddressInput) taxAddressInput.value = '';
-      }
+    function updateSlotPreview(index) {
+      const val = document.getElementById(`url_slot_${index}`).value.trim();
+      adminImageSlots[index] = val;
+      const preview = document.getElementById(`preview_slot_${index}`);
+      if (preview) preview.src = val || 'https://via.placeholder.com/50';
     }
 
-    /* ---------- สลิป: เลือกไฟล์ / ลากมาวาง ---------- */
-    let selectedSlipFile = null;
-    const MAX_SLIP_MB = 15;
-
-    function previewFile(input) {
-      const file = input.files && input.files[0];
-      if (file) setSlipFile(file);
-    }
-
-    function setSlipFile(file) {
+    async function uploadImageFromDevice(e, index) {
+      const file = e.target.files[0];
       if (!file) return;
-      if (!/^image\//i.test(file.type || '') && !/\.(png|jpe?g|webp|heic|heif)$/i.test(file.name || '')) {
-        Swal.fire('ไฟล์ไม่ถูกต้อง', 'กรุณาแนบไฟล์รูปภาพ (PNG, JPG, JPEG)', 'warning');
-        return;
+
+      if (file.size > 8 * 1024 * 1024) {
+        return Swal.fire({ icon: 'error', title: 'ขนาดไฟล์เกิน', text: 'กรุณาเลือกรูปภาพขนาดไม่เกิน 8MB' });
       }
-      if (file.size > MAX_SLIP_MB * 1024 * 1024) {
-        Swal.fire('ไฟล์ใหญ่เกินไป', `ขนาดไฟล์ต้องไม่เกิน ${MAX_SLIP_MB} MB`, 'warning');
-        return;
-      }
-      selectedSlipFile = file;
-      const zone = document.getElementById('uploadZone');
-      zone.classList.remove('invalid');
-      zone.classList.add('has-file');
-      document.getElementById('uploadTitle').textContent = 'แนบสลิปแล้ว (คลิกหรือลากไฟล์ใหม่มาวางเพื่อเปลี่ยน)';
-      const nameEl = document.getElementById('slipName');
-      nameEl.textContent = '📎 ' + file.name;
-      nameEl.classList.remove('d-none');
+
+      showStatus(true);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = document.getElementById('previewImage');
-        img.src = e.target.result;
-        img.classList.remove('d-none');
+      reader.onload = async function(evt) {
+        try {
+          const res = await apiCall("uploadImageFile", {
+            base64Data: evt.target.result,
+            fileName: file.name,
+            email: loggedEmail
+          });
+          showStatus(false);
+          
+          if (res && res.url) {
+            adminImageSlots[index] = res.url;
+            refreshImageSlotsUI();
+            Swal.fire({ icon: 'success', title: 'อัปโหลดสำเร็จ', timer: 1200, showConfirmButton: false });
+          } else {
+            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: (res && res.error) || 'ไม่สามารถอัปโหลดภาพได้' });
+          }
+        } catch(err) {
+          showStatus(false);
+          Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+        }
       };
       reader.readAsDataURL(file);
     }
 
-    function initDropZone() {
-      const zone = document.getElementById('uploadZone');
-      if (!zone) return;
-      const stop = e => { e.preventDefault(); e.stopPropagation(); };
-      ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.add('dragover'); }));
-      ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, e => { stop(e); zone.classList.remove('dragover'); }));
-      zone.addEventListener('drop', e => {
-        stop(e);
-        zone.classList.remove('dragover');
-        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-        if (file) setSlipFile(file);
+    function getCurrentlySelectedEvents() {
+      const allChk = document.getElementById('chk_ev_all');
+      if (allChk && allChk.checked) {
+        return ['ALL'];
+      }
+      const checkedItems = document.querySelectorAll('.item-ev-chk:checked');
+      const list = [];
+      checkedItems.forEach(c => list.push(c.value));
+      return list.length === 0 ? ['ALL'] : list;
+    }
+
+    function getCurrentCategoryRulesFromUI() {
+      const rules = { ...(currentConfig && currentConfig.categoryYearRules ? currentConfig.categoryYearRules : {}) };
+      const catRows = document.querySelectorAll('.cat-rule-row');
+      catRows.forEach(row => {
+        const cat = row.getAttribute('data-cat');
+        const minInput = row.querySelector('.cat-min-year');
+        const maxInput = row.querySelector('.cat-max-year');
+        if (cat && minInput && maxInput) {
+          rules[cat] = {
+            minYear: parseInt(minInput.value, 10) || 2010,
+            maxYear: parseInt(maxInput.value, 10) || 2015
+          };
+        }
       });
-      // วางไฟล์พลาดนอกกรอบ → ไม่ให้เบราว์เซอร์เปิดรูปแทนหน้าฟอร์ม
-      if (!window.__dropGuard) {
-        window.__dropGuard = true;
-        ['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+      return rules;
+    }
+
+    const MAX_MEMBER_SLOTS = 10;
+    const DEFAULT_MEMBER_LIMIT = { min: 2, max: 10 };
+    let adminAllEvents = [];
+
+    function clampLimit(min, max) {
+      min = parseInt(min, 10) || DEFAULT_MEMBER_LIMIT.min;
+      max = parseInt(max, 10) || DEFAULT_MEMBER_LIMIT.max;
+      min = Math.min(Math.max(min, 1), MAX_MEMBER_SLOTS);
+      max = Math.min(Math.max(max, 1), MAX_MEMBER_SLOTS);
+      if (min > max) { const t = min; min = max; max = t; }
+      return { min, max };
+    }
+
+    function getMemberLimitsFromUI() {
+      const limits = { ...(currentConfig && currentConfig.memberLimits ? currentConfig.memberLimits : {}) };
+      document.querySelectorAll('.cat-rule-row').forEach(row => {
+        const grp = row.getAttribute('data-cat');
+        const mn = row.querySelector('.ml-min'), mx = row.querySelector('.ml-max');
+        if (grp && mn && mx) limits[grp] = clampLimit(mn.value, mx.value);
+      });
+      return limits;
+    }
+
+    function updateCategoryRulesBySelectedEvents() {
+      const selectedEvents = getCurrentlySelectedEvents();
+      const currentRules = getCurrentCategoryRulesFromUI();
+      
+      let filteredEventCategories = {};
+      if (selectedEvents.includes('ALL')) {
+        filteredEventCategories = adminEventCategories;
+      } else {
+        selectedEvents.forEach(ev => {
+          if (adminEventCategories[ev]) {
+            filteredEventCategories[ev] = adminEventCategories[ev];
+          }
+        });
+      }
+      const currentLimits = getMemberLimitsFromUI();
+      renderCategoryRulesUI(filteredEventCategories, currentRules, currentLimits);
+    }
+
+    function renderCategoryRulesUI(eventCategories, existingRules = {}, existingLimits = {}) {
+      const container = document.getElementById('cfgCategoryRulesContainer');
+      if (!eventCategories || Object.keys(eventCategories).length === 0) {
+        container.innerHTML = '<div class="text-muted p-2">ไม่พบ Age Group สำหรับรายการที่เลือก</div>';
+        return;
+      }
+
+      let html = '';
+      for (const evName in eventCategories) {
+        const cats = eventCategories[evName];
+        if (cats && cats.length > 0) {
+          html += `<div class="fw-bold text-primary mb-1 mt-2 border-bottom pb-1" style="font-size: 0.85rem;">🏆 รายการ: ${escapeHtml(evName)}</div>`;
+          cats.forEach(cat => {
+            const rule = existingRules[cat] || { minYear: 2010, maxYear: 2015 };
+            const minBE = rule.minYear + 543;
+            const maxBE = rule.maxYear + 543;
+
+            const lim = clampLimit((existingLimits[cat] || DEFAULT_MEMBER_LIMIT).min, (existingLimits[cat] || DEFAULT_MEMBER_LIMIT).max);
+
+            html += `
+              <div class="mb-2 p-2 bg-light rounded cat-rule-row" data-cat="${escapeHtml(cat)}">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <div style="width: 140px; font-weight: 600; font-size: 0.85rem;" class="text-truncate" title="${escapeHtml(cat)}">
+                    🏷️ ${escapeHtml(cat)}
+                  </div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span style="font-size: 0.75rem;">ปีต่ำสุด:</span>
+                    <input type="number" class="form-control form-control-sm cat-min-year" style="width: 85px;" 
+                           value="${rule.minYear}" placeholder="เช่น 2010" oninput="updateCatHelper(this)">
+                  </div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span style="font-size: 0.75rem;">ปีสูงสุด:</span>
+                    <input type="number" class="form-control form-control-sm cat-max-year" style="width: 85px;" 
+                           value="${rule.maxYear}" placeholder="เช่น 2015" oninput="updateCatHelper(this)">
+                  </div>
+                  <div class="cat-helper text-muted ms-1" style="font-size: 0.75rem;">
+                    (พ.ศ. ${minBE} - ${maxBE})
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap mt-1">
+                  <div style="width: 140px; font-size: 0.75rem;" class="text-muted">👥 จำนวนสมาชิก</div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span style="font-size: 0.75rem;">น้อยสุด:</span>
+                    <input type="number" min="1" max="${MAX_MEMBER_SLOTS}" class="form-control form-control-sm ml-min" style="width: 85px;" value="${lim.min}">
+                  </div>
+                  <div class="d-flex align-items-center gap-1">
+                    <span style="font-size: 0.75rem;">มากสุด:</span>
+                    <input type="number" min="1" max="${MAX_MEMBER_SLOTS}" class="form-control form-control-sm ml-max" style="width: 85px;" value="${lim.max}">
+                  </div>
+                  <span style="font-size: 0.75rem;" class="text-muted">คน</span>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function updateCatHelper(inputElem) {
+      const row = inputElem.closest('.cat-rule-row');
+      let min = parseInt(row.querySelector('.cat-min-year').value, 10);
+      let max = parseInt(row.querySelector('.cat-max-year').value, 10);
+      
+      if (min > 2400) min -= 543;
+      if (max > 2400) max -= 543;
+
+      const helper = row.querySelector('.cat-helper');
+      if (min && max) {
+        helper.innerText = `(พ.ศ. ${min + 543} - ${max + 543})`;
       }
     }
 
-    /**
-     * ย่อรูปสลิปก่อนส่ง (รูปจากมือถือ 3-5 MB → ประมาณ 300-600 KB) ให้ส่งเร็วขึ้น
-     * รูปเล็กอยู่แล้วหรือย่อไม่ได้ → ส่งไฟล์เดิม
-     */
-    function prepareSlip(file) {
-      const readRaw = () => new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve({ base64: String(r.result).split(',')[1] || '', name: file.name, type: file.type || 'image/jpeg' });
-        r.onerror = () => reject(new Error('อ่านไฟล์สลิปไม่สำเร็จ'));
-        r.readAsDataURL(file);
+    function renderEventCheckboxes(allEvents, activeEventSetting) {
+      const container = document.getElementById('cfgActiveEventContainer');
+      let activeList = [];
+      try {
+        if (activeEventSetting && activeEventSetting !== 'ALL') {
+          activeList = typeof activeEventSetting === 'string' ? JSON.parse(activeEventSetting) : activeEventSetting;
+        }
+      } catch(e) {
+        activeList = [activeEventSetting];
+      }
+
+      const isAll = (!activeEventSetting || activeEventSetting === 'ALL' || (Array.isArray(activeList) && activeList.includes('ALL')));
+
+      let html = `
+        <div class="form-check mb-1">
+          <input class="form-check-input event-chk" type="checkbox" value="ALL" id="chk_ev_all" ${isAll ? 'checked' : ''} onchange="toggleAllEvents(this)">
+          <label class="form-check-label fw-bold" for="chk_ev_all">-- แสดงและเปิดให้แก้ไขทุก Event (ALL) --</label>
+        </div><hr class="my-1">`;
+
+      if (allEvents && allEvents.length > 0) {
+        allEvents.forEach((ev, i) => {
+          const checked = !isAll && activeList.includes(ev) ? 'checked' : '';
+          html += `
+            <div class="form-check">
+              <input class="form-check-input event-chk item-ev-chk" type="checkbox" value="${escapeHtml(ev)}" id="chk_ev_${i}" ${checked} onchange="onItemEventChange()">
+              <label class="form-check-label" for="chk_ev_${i}">${escapeHtml(ev)}</label>
+            </div>`;
+        });
+      }
+      container.innerHTML = html;
+    }
+
+    function toggleAllEvents(allChk) {
+      const itemChks = document.querySelectorAll('.item-ev-chk');
+      if (allChk.checked) {
+        itemChks.forEach(c => c.checked = false);
+      }
+      updateCategoryRulesBySelectedEvents();
+    }
+
+    function onItemEventChange() {
+      const itemChks = document.querySelectorAll('.item-ev-chk:checked');
+      const allChk = document.getElementById('chk_ev_all');
+      if (itemChks.length > 0 && allChk) {
+        allChk.checked = false;
+      } else if (itemChks.length === 0 && allChk) {
+        allChk.checked = true;
+      }
+      updateCategoryRulesBySelectedEvents();
+    }
+
+    async function login(fromGear = false) {
+      loggedEmail = document.getElementById('email').value.trim();
+      if (!loggedEmail) return alert("กรุณากรอกอีเมล");
+      
+      showStatus(true);
+      try {
+        const res = await apiCall("getTeamsByEmail", { email: loggedEmail });
+        showStatus(false);
+        
+        if (!res || res.error) {
+          return Swal.fire({ 
+            icon: 'error', 
+            title: 'ข้อผิดพลาด', 
+            text: (res && res.error) || 'ไม่สามารถดึงข้อมูลได้'
+          });
+        }
+
+        if (fromGear && !res.isAdmin) {
+          return Swal.fire({ 
+            icon: 'error', 
+            title: 'ไม่อนุญาต', 
+            text: 'อีเมลนี้ไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ' 
+          });
+        }
+
+        if (res.isAdmin) {
+          document.getElementById('outsideSystemSection').classList.add('hidden');
+          document.getElementById('mainContentCard').classList.remove('hidden');
+          document.getElementById('adminPanelSection').classList.remove('hidden');
+          
+          document.getElementById('cfgOpenDate').value = res.config.openDate || "";
+          document.getElementById('cfgCloseDate').value = res.config.closeDate || "";
+          document.getElementById('cfgNoteText').value = res.config.noteText || "";
+          
+          if (res.config.imageMode === 'LOGO') {
+            document.getElementById('modeLogo').checked = true;
+          } else {
+            document.getElementById('modeBanner').checked = true;
+          }
+          
+          const urls = (res.config.bannerUrls && res.config.bannerUrls.length > 0) ? res.config.bannerUrls : [res.config.bannerUrl];
+          renderAdminImageSlots(urls);
+          applyMediaToAllScreens(res.config);
+          renderEventCheckboxes(res.allEvents, res.config.activeEvent);
+
+          adminEventCategories = res.eventCategories || {};
+          adminAllEvents = res.allEvents || [];
+          currentConfig = res.config;
+
+          updateCategoryRulesBySelectedEvents();
+        } else {
+          document.getElementById('adminPanelSection').classList.add('hidden');
+          currentConfig = res.config || currentConfig;
+        }
+        
+        const select = document.getElementById('teamDropdown');
+        let opts = '<option value="">-- เลือก Team ID --</option>';
+        res.teams.forEach(id => { opts += `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`; });
+        select.innerHTML = opts;
+        
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('selectSection').classList.remove('hidden');
+      } catch (err) {
+        showStatus(false);
+        Swal.fire({
+          icon: 'error',
+          title: 'การเชื่อมต่อขัดข้อง',
+          text: 'ไม่สามารถติดต่อ Web App ได้ กรุณาตรวจสอบ URL หรือสิทธิ์การเข้าถึง: ' + err.message
+        });
+      }
+    }
+
+    // ตัวครอบ: ถ้ามีข้อผิดพลาดใดๆ ให้แสดงข้อความแทนการเงียบหาย
+    async function saveAdminSettings() {
+      try {
+        await saveAdminSettingsInner();
+      } catch (err) {
+        showStatus(false);
+        Swal.fire({ icon: 'error', title: 'บันทึกการตั้งค่าไม่สำเร็จ', text: err.message || String(err) });
+      }
+    }
+
+    async function saveAdminSettingsInner() {
+      const openDate = document.getElementById('cfgOpenDate').value;
+      const closeDate = document.getElementById('cfgCloseDate').value;
+      const noteText = document.getElementById('cfgNoteText').value;
+      const imageMode = document.querySelector('input[name="imageMode"]:checked').value;
+
+      const urlInputs = document.querySelectorAll('.img-slot-url');
+      const bannerUrls = [];
+      urlInputs.forEach(input => {
+        const v = input.value.trim();
+        if (v) bannerUrls.push(v);
       });
-      if (file.size < 700 * 1024) return readRaw();
-      return new Promise(resolve => {
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const MAX = 1800;
-            const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
-            const c = document.createElement('canvas');
-            c.width = Math.round(img.naturalWidth * scale);
-            c.height = Math.round(img.naturalHeight * scale);
-            const ctx = c.getContext('2d');
-            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
-            ctx.drawImage(img, 0, 0, c.width, c.height);
-            const dataUrl = c.toDataURL('image/jpeg', 0.85);
-            URL.revokeObjectURL(url);
-            resolve({ base64: dataUrl.split(',')[1], name: file.name.replace(/\.[^.]+$/, '') + '.jpg', type: 'image/jpeg' });
-          } catch (e) { URL.revokeObjectURL(url); readRaw().then(resolve); }
+      if (bannerUrls.length === 0) bannerUrls.push('https://img2.pic.in.th/Banner-CARC-2026.jpg');
+
+      const categoryYearRules = getCurrentCategoryRulesFromUI();
+      const catRows = document.querySelectorAll('.cat-rule-row');
+      catRows.forEach(row => {
+        const cat = row.getAttribute('data-cat');
+        const minEl = row.querySelector('.cat-min-year'), maxEl = row.querySelector('.cat-max-year');
+        if (!cat || !minEl || !maxEl) return;
+        let minYear = parseInt(minEl.value, 10);
+        let maxYear = parseInt(maxEl.value, 10);
+
+        if (minYear > 2400) minYear -= 543;
+        if (maxYear > 2400) maxYear -= 543;
+
+        if (minYear && maxYear) {
+          if (minYear > maxYear) {
+            const temp = minYear; minYear = maxYear; maxYear = temp;
+          }
+          categoryYearRules[cat] = { minYear, maxYear };
+        }
+      });
+
+      const selectedEvents = [];
+      const allChk = document.getElementById('chk_ev_all');
+      if (allChk && allChk.checked) {
+        selectedEvents.push("ALL");
+      } else {
+        const checkedItems = document.querySelectorAll('.item-ev-chk:checked');
+        checkedItems.forEach(c => selectedEvents.push(c.value));
+      }
+
+      showStatus(true);
+      try {
+        const newConfig = { 
+          openDate, 
+          closeDate, 
+          noteText, 
+          imageMode,
+          bannerUrls: bannerUrls.slice(0, 3),
+          bannerUrl: bannerUrls[0],
+          activeEvent: selectedEvents.length === 0 ? "ALL" : selectedEvents,
+          categoryYearRules: categoryYearRules,
+          memberLimits: getMemberLimitsFromUI()
         };
-        img.onerror = () => { URL.revokeObjectURL(url); readRaw().then(resolve); };
-        img.src = url;
-      });
+
+        const res = await apiCall("saveConfig", { config: newConfig, email: loggedEmail });
+        showStatus(false);
+
+        const ok = typeof res === 'string' && res.includes('✅');
+        if (ok) {
+          document.getElementById('noteTextDisplay').innerText = noteText;
+          applyMediaToAllScreens(newConfig);
+        }
+        Swal.fire({ icon: ok ? 'success' : 'error', title: ok ? 'เรียบร้อย' : 'ข้อผิดพลาด', text: String(res) });
+        if (ok) await login(true);
+      } catch (err) {
+        showStatus(false);
+        alert("บันทึกการตั้งค่าล้มเหลว: " + err.message);
+      }
     }
 
-    function handleFormSubmit(event) {
-      event.preventDefault();
-      const summary = calculateTotalAmount();
-
-      if (summary.selectedTeamsList.length === 0) {
-        Swal.fire('คำเตือน', 'กรุณาเลือกอย่างน้อย 1 ทีมที่ต้องการชำระเงิน', 'warning');
+    async function loadTeamData() {
+      currentTeamId = document.getElementById('teamDropdown').value;
+      const container = document.getElementById('formFields');
+      const editSection = document.getElementById('editSection');
+      
+      if (!currentTeamId) {
+        editSection.classList.add('hidden');
+        container.innerHTML = "";
         return;
       }
 
-      const docTypeChecked = document.querySelector('input[name="docType"]:checked');
-      if (!docTypeChecked) {
-        Swal.fire('คำเตือน', 'กรุณาเลือกความต้องการออกเอกสาร', 'warning');
-        return;
-      }
+      container.innerHTML = '<div class="text-center w-100 p-5"><div class="spinner-border text-primary"></div><br>Processing...</div>';
+      editSection.classList.remove('hidden');
 
-      const isEver = document.querySelector('input[name="taxHistory"]:checked')?.value === 'เคย';
-      const activeCompaniesData = (docTypeChecked.value === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
-
-      if (docTypeChecked.value !== 'ไม่ต้องการ') {
-        const taxHistoryChecked = document.querySelector('input[name="taxHistory"]:checked');
-        if (!taxHistoryChecked) {
-          Swal.fire('คำเตือน', 'กรุณาเลือกว่าเคยออกเอกสารกับทางบริษัทฯ แล้วหรือไม่', 'warning');
+      try {
+        const fields = await apiCall("getTeamData", { teamId: currentTeamId, email: loggedEmail });
+        if (!fields || fields.error || !Array.isArray(fields) || fields.length === 0) {
+          const msg = (fields && fields.error) ? fields.error : 'ไม่พบข้อมูลสำหรับทีมนี้';
+          container.innerHTML = `<div class="alert alert-danger w-100">❌ ${escapeHtml(msg)}</div>`;
+          document.getElementById('saveBtn').classList.add('hidden');
           return;
         }
-        if (isEver) {
-          const selectEl = document.getElementById('taxCompanySelect');
-          if (!selectEl || selectEl.value === '') {
-            Swal.fire('คำเตือน', 'กรุณาเลือกชื่อบริษัท / หน่วยงาน', 'warning');
-            return;
-          }
+
+        fieldMapping = fields;
+        const fieldMap = {};
+        fields.forEach((f, index) => { fieldMap[f.label.trim()] = { ...f, originalIndex: index }; });
+
+        const statusValue = fieldMap["Status"] ? String(fieldMap["Status"].value).trim() : "";
+        const isCancel = (statusValue.toLowerCase() === "cancel");
+
+        currentTeamCategory = fieldMap["Age Group"] ? String(fieldMap["Age Group"].value).trim() : "";
+        const rules = (currentConfig && currentConfig.categoryYearRules) ? currentConfig.categoryYearRules : {};
+        if (rules[currentTeamCategory]) {
+          currentTeamMinYear = rules[currentTeamCategory].minYear;
+          currentTeamMaxYear = rules[currentTeamCategory].maxYear;
         } else {
-          const companyInput = document.getElementById('taxCompanyInput');
-          if (!companyInput || !companyInput.value.trim()) {
-            Swal.fire('คำเตือน', 'กรุณาระบุชื่อบริษัท / หน่วยงาน', 'warning');
-            return;
-          }
-          // บังคับกรอกเลขผู้เสียภาษีเฉพาะกรณี "ใบกำกับภาษี" เท่านั้น
-          if (docTypeChecked.value === 'ใบกำกับภาษี' && !document.getElementById('taxId').value.trim()) {
-            Swal.fire('คำเตือน', 'กรุณาระบุเลขประจำตัวผู้เสียภาษี', 'warning');
-            return;
-          }
-          if (!document.getElementById('taxAddress').value.trim()) {
-            Swal.fire('คำเตือน', 'กรุณาระบุที่อยู่สำหรับออกเอกสาร', 'warning');
-            return;
-          }
+          currentTeamMinYear = 2010;
+          currentTeamMaxYear = 2020;
         }
-      }
 
-      if (!selectedSlipFile) {
-        const zone = document.getElementById('uploadZone');
-        if (zone) { zone.classList.add('invalid'); zone.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        Swal.fire('คำเตือน', 'กรุณาแนบสลิปการโอนเงิน', 'warning');
-        return;
-      }
+        const createInput = (label, isReadonly = true, colClass = "col-md-6") => {
+          const f = fieldMap[label];
+          if (!f) return "";
+          const finalReadonly = isCancel ? true : (isReadonly || !f.editable);
+          const bgClass = finalReadonly ? 'bg-light text-muted' : '';
+          return `
+            <div class="${colClass} col-12 mb-2">
+              <label class="form-label">${escapeHtml(f.label)}</label>
+              <input type="text" class="form-control edit-input ${bgClass}" 
+                data-index="${f.originalIndex}" value="${escapeHtml(f.value)}" ${finalReadonly ? 'readonly' : ''}>
+            </div>`;
+        };
 
-      const confirmData = document.getElementById('confirmData');
-      if (!confirmData || !confirmData.checked) {
-        Swal.fire('คำเตือน', 'กรุณาติ๊กยืนยันว่าได้กรอกข้อมูลครบถ้วนแล้ว', 'warning');
-        return;
-      }
+        let statusClass = isCancel ? "status-cancel" : "status-registered";
+        let dotClass = isCancel ? "dot-red" : "dot-green-pulse";
 
-      const allTeamIds = summary.selectedTeamsList.map(t => t.teamId).join(', ');
-      const allTeamNames = summary.selectedTeamsList.map(t => t.teamName).join(', ');
-      const primaryTeamId = summary.selectedTeamsList[0].teamId;
+        let html = `
+          <div class="col-12"><div class="section-header">Team Info</div></div>
+          <div class="col-12">
+            <div class="status-wrapper">
+              <div class="badge-custom ${statusClass}">${escapeHtml(statusValue)} <span class="${dotClass}"></span></div>
+              ${isCancel ? `<div class="text-danger mt-2" style="font-size: 0.8rem;"><strong>* ไม่สามารถแก้ไขได้ เนื่องจากทีมถูกยกเลิก</strong></div>` : ''}
+            </div>
+          </div>
+          ${createInput("Events Name", true, "col-md-12")}
+          ${createInput("Team ID", true, "col-md-4")}
+          ${createInput("Team Name", false, "col-md-8")}
+          ${createInput("Institution", false, "col-md-6")}
+          ${createInput("Province", true, "col-md-3")}
+          ${createInput("Country", true, "col-md-3")}
+          ${createInput("Age Group", true, "col-md-6")}
+          ${createInput("Category", true, "col-md-6")}
+          
+          <div class="col-12"><div class="section-header">Coach Info</div></div>
+          ${["Coach Name (1)", "Coach Name (2)"].map(l => createInput(l, false, "col-md-6")).join('')}
+          ${["Email", "Tel", "Line ID"].map(l => createInput(l, false, "col-md-4")).join('')}
+          
+          <div class="col-12">
+            <div class="section-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <span>Competitors</span>
+              <button type="button" class="btn-year-compare shadow-sm" onclick="showYearComparisonModal()">
+                📅 ตารางเทียบ พ.ศ. - ค.ศ.
+              </button>
+            </div>
+          </div>`;
 
-      let companyVal = '';
-      if (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) {
-        const selectEl = document.getElementById('taxCompanySelect');
-        const idx = selectEl ? selectEl.value : '';
-        if (idx !== '' && activeCompaniesData[idx]) {
-          companyVal = activeCompaniesData[idx].companyName;
+        const limSrc = (currentConfig && currentConfig.memberLimits && currentConfig.memberLimits[currentTeamCategory]) || DEFAULT_MEMBER_LIMIT;
+        currentMemberLimit = clampLimit(limSrc.min, limSrc.max);
+        currentTeamCancelled = isCancel;
+
+        let openSlot = 0;
+        let hiddenSlots = 0;
+        fields.forEach((field, index) => {
+          const labelTrim = field.label.trim();
+          if (!field.slot) return;
+
+          // เปิดกล่องของสมาชิกแต่ละคน (ซ่อนไว้ถ้ายังไม่ได้เพิ่ม)
+          if (field.slot !== openSlot) {
+            if (openSlot) html += `</div></div>`;
+            openSlot = field.slot;
+            if (field.hidden) hiddenSlots++;
+            const tagColor = MEMBER_TAG_COLORS[(field.slot - 1) % MEMBER_TAG_COLORS.length];
+            html += `<div class="col-12 member-block ${field.hidden ? 'hidden' : ''}" data-slot="${field.slot}">
+                       <div class="member-divider"></div>
+                       <div class="d-flex justify-content-between align-items-center mb-2">
+                         <span class="member-tag" style="background:${tagColor};">👤 Member (No.${field.slot})</span>
+                         ${!isCancel ? `<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 btn-remove-member hidden" style="font-size: 0.75rem;" onclick="removeMemberSlot(${field.slot})">🗑️ ลบสมาชิก</button>` : ''}
+                       </div>
+                       <div class="row g-2 g-md-3">`;
+          }
+          if (labelTrim.startsWith("ID Category (")) {
+            const locked = isCancel || !field.editable;
+            const opts = Array.isArray(field.options) ? field.options : [];
+            const cur = String(field.value || '').trim();
+            let optHtml = `<option value="">-- เลือกประเภทบัตร --</option>`;
+            let found = false;
+            opts.forEach(o => {
+              const sel = (o.value === cur) ? 'selected' : '';
+              if (sel) found = true;
+              optHtml += `<option value="${escapeHtml(o.value)}" ${sel}>${escapeHtml(o.text)}</option>`;
+            });
+            if (cur && !found) optHtml += `<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`;
+            html += `
+              <div class="col-md-6 col-12 mb-2">
+                <label class="form-label">${escapeHtml(field.label)}</label>
+                <select class="form-select edit-input ${locked ? 'bg-light text-muted' : ''}" data-index="${index}" ${locked ? 'disabled' : ''}>
+                  ${optHtml}
+                </select>
+              </div>`;
+          } else if (labelTrim.startsWith("ID Number (")) {
+            html += createInput(labelTrim, false, "col-md-6");
+          } else if (labelTrim.startsWith("Member (") || labelTrim.startsWith("Date of birth (")) {
+            if (labelTrim.startsWith("Date of birth (")) {
+              const beText = getBuddhistYearText(field.value);
+              html += `
+                <div class="col-md-6 col-12 mb-2">
+                  <div class="dob-header-container">
+                    <label class="form-label mb-0">
+                      ${escapeHtml(field.label)} 
+                      <span id="be_year_${index}" class="text-primary fw-bold" style="font-size: 0.85rem;">${beText}</span>
+                    </label>
+                    ${!isCancel ? `
+                    <div class="form-check d-flex align-items-center">
+                      <input class="form-check-input me-1" type="checkbox" id="chk_${index}" onchange="toggleDate(${index})">
+                      <label class="form-check-label" for="chk_${index}" style="font-size: 0.75rem; cursor:pointer;">Edit</label>
+                    </div>` : ''}
+                  </div>
+                  <input type="text" class="form-control edit-input bg-light text-muted" 
+                    id="input_${index}" data-index="${index}" data-original="${escapeHtml(field.value)}"
+                    value="${escapeHtml(field.value)}" readonly 
+                    oninput="onDateInputChanged(${index})" onchange="onDateInputChanged(${index})">
+                  <div class="text-muted mt-1" style="font-size: 0.72rem;">
+                    * เกณฑ์ปีเกิด (${escapeHtml(currentTeamCategory || 'ทั่วไป')}): ค.ศ. ${currentTeamMinYear} - ${currentTeamMaxYear} (พ.ศ. ${currentTeamMinYear+543} - ${currentTeamMaxYear+543})
+                  </div>
+                </div>`;
+            } else {
+              html += createInput(labelTrim, false, "col-md-6");
+            }
+          }
+        });
+        if (openSlot) html += `</div></div>`;
+
+        if (!isCancel) {
+          html += `
+            <div class="col-12 mt-2 ${hiddenSlots ? '' : 'hidden'}" id="addMemberWrap">
+              <button type="button" class="btn btn-outline-primary w-100" onclick="addMemberSlot()">
+                + เพิ่มสมาชิก <span id="memberCountText"></span>
+              </button>
+            </div>
+            <div class="col-12"><small class="text-muted" id="memberLimitHint"></small></div>`;
         }
-      } else {
-        const companyInput = document.getElementById('taxCompanyInput');
-        companyVal = companyInput ? companyInput.value : '';
+
+        container.innerHTML = html;
+        updateMemberCountText();
+        document.getElementById('saveBtn').classList.toggle('hidden', isCancel);
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาด: ${escapeHtml(err.message)}</div>`;
       }
+    }
 
-      if (window.__submitting) return;     // กันกดส่งซ้ำ
-      window.__submitting = true;
+    // เปิดช่องสมาชิกคนถัดไป (สูงสุดตามที่ระบบกำหนด เช่น 10 คน)
+    function addMemberSlot() {
+      const visibleNow = document.querySelectorAll('.member-block:not(.hidden)').length;
+      if (visibleNow >= currentMemberLimit.max) {
+        return Swal.fire({ icon: 'info', title: 'ครบจำนวนแล้ว', text: `ทีมนี้มีสมาชิกได้สูงสุด ${currentMemberLimit.max} คน` });
+      }
+      const next = document.querySelector('.member-block.hidden');
+      if (!next) return;
+      next.classList.remove('hidden');
+      // ช่องวันเกิดของสมาชิกใหม่ เปิดโหมดเลือกวันที่ให้ทันที
+      next.querySelectorAll('input[type="checkbox"][id^="chk_"]').forEach(chk => {
+        const idx = chk.id.replace('chk_', '');
+        const inp = document.getElementById('input_' + idx);
+        if (inp && !inp.value && !chk.checked) { chk.checked = true; toggleDate(idx); }
+      });
+      const firstInput = next.querySelector('input.edit-input:not([readonly])');
+      if (firstInput) firstInput.focus();
+      updateMemberCountText();
+    }
 
+    let currentMemberLimit = { min: 2, max: 10 };
+    // สีแท็กของสมาชิกแต่ละคน (วนสีเมื่อเกินจำนวนสี)
+    const MEMBER_TAG_COLORS = ['#1a237e', '#00897b', '#6a1b9a', '#c62828', '#ef6c00', '#2e7d32', '#0277bd', '#ad1457', '#4e342e', '#455a64'];
+    let currentTeamCancelled = false;
+
+    // ลบสมาชิกคนสุดท้าย: ล้างข้อมูลทุกช่องของคนนั้น แล้วซ่อนไว้ (บันทึกจริงเมื่อกด Save)
+    function removeMemberSlot(slot) {
+      const block = document.querySelector(`.member-block[data-slot="${slot}"]`);
+      if (!block) return;
       Swal.fire({
-        title: 'กำลังส่งข้อมูล...',
-        text: 'กรุณารอสักครู่ ระบบกำลังบันทึกข้อมูล',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
+        title: `ลบสมาชิกคนที่ ${slot}?`,
+        text: 'ข้อมูลของสมาชิกคนนี้จะถูกล้าง เมื่อกด Save',
+        icon: 'warning', showCancelButton: true,
+        confirmButtonColor: '#dc3545', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
+      }).then(r => {
+        if (!r.isConfirmed) return;
+        block.querySelectorAll('input[type="checkbox"][id^="chk_"]').forEach(chk => {
+          const idx = chk.id.replace('chk_', '');
+          if (!chk.checked) { chk.checked = true; toggleDate(idx); }
+          const inp = document.getElementById('input_' + idx);
+          if (inp) { inp.value = ''; onDateInputChanged(idx); }
+        });
+        block.querySelectorAll('.edit-input').forEach(el => { if (!el.readOnly && !el.disabled) el.value = ''; });
+        block.classList.add('hidden');
+        updateMemberCountText();
+      });
+    }
+
+    function updateMemberCountText() {
+      const blocks = Array.from(document.querySelectorAll('.member-block'));
+      const visible = blocks.filter(b => !b.classList.contains('hidden'));
+      blocks.forEach(b => b.classList.remove('first-visible'));
+      if (visible[0]) visible[0].classList.add('first-visible');
+      const limit = Math.max(currentMemberLimit.max, visible.length);
+      const txt = document.getElementById('memberCountText');
+      if (txt) txt.innerText = `(${visible.length}/${currentMemberLimit.max})`;
+      const wrap = document.getElementById('addMemberWrap');
+      if (wrap) wrap.classList.toggle('hidden', visible.length >= Math.min(limit, blocks.length) || visible.length >= currentMemberLimit.max);
+      // ปุ่มลบ แสดงเฉพาะคนสุดท้าย และเมื่อจำนวนยังมากกว่าขั้นต่ำ
+      document.querySelectorAll('.btn-remove-member').forEach(b => b.classList.add('hidden'));
+      if (!currentTeamCancelled && visible.length > currentMemberLimit.min) {
+        const btn = visible[visible.length - 1].querySelector('.btn-remove-member');
+        if (btn) btn.classList.remove('hidden');
+      }
+      const hint = document.getElementById('memberLimitHint');
+      if (hint) hint.innerText = `* ทีมต้องมีสมาชิก ${currentMemberLimit.min} - ${currentMemberLimit.max} คน`;
+    }
+
+    function toggleDate(index) {
+      const input = document.getElementById('input_' + index);
+      const chk = document.getElementById('chk_' + index);
+      const beElem = document.getElementById('be_year_' + index);
+      const originalValue = input.getAttribute('data-original') || '';
+
+      if (chk.checked) {
+        input.type = "date";
+        input.min = `${currentTeamMinYear}-01-01`; 
+        input.max = `${currentTeamMaxYear}-12-31`;
+        
+        let parts = originalValue.split('/');
+        if (parts.length === 3) {
+          let year = parseInt(parts[2], 10);
+          if (year > 2500) year -= 543;
+          let month = parts[1].padStart(2, '0');
+          let day = parts[0].padStart(2, '0');
+          input.value = `${year}-${month}-${day}`;
+        } else {
+          input.value = '';
+        }
+        input.readOnly = false;
+        input.classList.remove('bg-light', 'text-muted');
+        onDateInputChanged(index);
+      } else {
+        input.type = "text";
+        input.value = originalValue;
+        input.readOnly = true;
+        input.classList.add('bg-light', 'text-muted');
+        if (beElem) beElem.innerText = getBuddhistYearText(originalValue);
+      }
+    }
+
+    function saveChanges() {
+      const inputs = document.querySelectorAll('.edit-input');
+      let dateValid = true;
+
+      inputs.forEach(input => {
+        if (input.type === "date" && input.value !== "") {
+          const year = parseInt(input.value.split('-')[0], 10);
+          if (year < currentTeamMinYear || year > currentTeamMaxYear) {
+            dateValid = false;
+          }
+        }
       });
 
-      function sendPayload(imageData = '', fileName = '', fileType = '') {
-        const payload = {
-          teamId: allTeamIds,
-          primaryTeamId: primaryTeamId,
-          teamName: allTeamNames,
-          institution: summary.selectedTeamsList[0].institution || appData.institution || '',
-          amount: summary.totalAmount.toString(),
-          teamCount: summary.teamCount,
-          userId: getQueryParam('userId') || appData.userId || '',
-          payMethod: document.querySelector('input[name="payMethod"]:checked').value,
-          contactName: document.getElementById('contactName').value,
-          contactPhone: document.getElementById('contactPhone').value,
-          contactLine: document.getElementById('contactLine').value,
-          docType: docTypeChecked.value,
-          taxHistory: document.querySelector('input[name="taxHistory"]:checked')?.value || '',
-          taxCompany: companyVal,
-          taxCompanyIndex: (docTypeChecked.value !== 'ไม่ต้องการ' && isEver) ? (document.getElementById('taxCompanySelect')?.value || '') : '',
-          taxId: document.getElementById('taxId').value,
-          taxAddress: document.getElementById('taxAddress').value,
-          deliveryType: document.querySelector('input[name="deliveryType"]:checked')?.value || '',
-          recipientName: document.getElementById('recipientName').value,
-          recipientPhone: document.getElementById('recipientPhone').value,
-          deliveryAddress: document.getElementById('deliveryAddress').value,
-          imageData: imageData,
-          fileName: fileName,
-          fileType: fileType
-        };
-
-        const onResult = (res) => {
-          window.__submitting = false;
-          Swal.close();
-          if (res && res.status === 'success') {
-            Swal.fire({
-              icon: 'success',
-              title: 'อัปเดตข้อมูลเรียบร้อยแล้ว!',
-              text: 'ระบบได้บันทึกข้อมูลเรียบร้อยแล้ว',
-              confirmButtonText: 'ตกลง',
-              confirmButtonColor: '#006633'
-            }).then(() => {
-              showPaidSuccessCard(summary.selectedTeamsList);
-            });
-          } else if (res && res.code === 'ALREADY_PAID') {
-            Swal.fire({
-              icon: 'info',
-              title: 'ทีมนี้ยืนยันชำระเงินแล้ว',
-              text: res.message,
-              confirmButtonText: 'รีเฟรชหน้าเว็บ',
-              confirmButtonColor: '#006633',
-              allowOutsideClick: false
-            }).then(() => location.reload());
-          } else {
-            Swal.fire('เกิดข้อผิดพลาด', (res && res.message) || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
-          }
-        };
-        const onFail = (err) => {
-          window.__submitting = false;
-          Swal.close();
-          console.error('Submit error:', err);
-          Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
-        };
-
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-          google.script.run
-            .withSuccessHandler(onResult)
-            .withFailureHandler(onFail)
-            .saveData(payload);
-        } else {
-          fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-          })
-          .then(res => res.json())
-          .then(onResult)
-          .catch(onFail);
+      const blocksAll = Array.from(document.querySelectorAll('.member-block'));
+      if (blocksAll.length && !currentTeamCancelled) {
+        const named = blocksAll.filter(b => {
+          if (b.classList.contains('hidden')) return false;
+          const nameInput = b.querySelector('input.edit-input[type="text"]:not([id^="input_"])');
+          return nameInput && nameInput.value.trim() !== '';
+        }).length;
+        if (named < currentMemberLimit.min || named > currentMemberLimit.max) {
+          return Swal.fire({
+            icon: 'error', title: 'จำนวนสมาชิกไม่ตรงตามเกณฑ์',
+            text: `ทีมต้องมีสมาชิก ${currentMemberLimit.min} - ${currentMemberLimit.max} คน (กรอกชื่อแล้ว ${named} คน)`
+          });
         }
       }
 
-      prepareSlip(selectedSlipFile)
-        .then(s => sendPayload(s.base64, s.name, s.type))
-        .catch(onPrepFail => {
-          window.__submitting = false;
-          Swal.fire('เกิดข้อผิดพลาด', 'อ่านไฟล์สลิปไม่สำเร็จ กรุณาแนบใหม่อีกครั้ง', 'error');
-        });
-    }
-
-    function showPaidSuccessCard(selectedTeamsList) {
-      const container = document.getElementById('formContainer');
-      if (!container) return;
-
-      let teamsListHtml = '';
-      if (selectedTeamsList && selectedTeamsList.length > 0) {
-        selectedTeamsList.forEach(t => {
-          teamsListHtml += `
-            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-              <div class="me-2 text-truncate text-start">
-                <div>
-                  <span class="badge bg-secondary me-1">${esc(t.teamId)}</span>
-                  <strong class="text-dark small">${esc(t.teamName)}</strong>
-                </div>
-                <div class="text-muted" style="font-size: 0.78rem;">
-                  ${esc(t.categoryText || '-')} | ${esc(t.institution || '-')}
-                </div>
-              </div>
-              <div>
-                <span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-clock me-1"></i>Waiting</span>
-              </div>
-            </div>
-          `;
+      if (!dateValid) {
+        return Swal.fire({ 
+          icon: 'error', 
+          title: 'ปีเกิดไม่อยู่ในเกณฑ์ที่กำหนด', 
+          text: `ประเภท ${currentTeamCategory}: ต้องเป็นปีเกิดระหว่าง ค.ศ. ${currentTeamMinYear} - ${currentTeamMaxYear} (พ.ศ. ${currentTeamMinYear+543} - ${currentTeamMaxYear+543}) เท่านั้น` 
         });
       }
 
-      container.innerHTML = `
-        <div class="card p-4 text-center border-success bg-white rounded-4 my-4 shadow-sm">
-          <div class="mb-3">
-            <i class="fa-solid fa-circle-check text-success" style="font-size: 3.5rem;"></i>
-          </div>
-          <h4 class="fw-bold text-success mb-2">ยืนยันสลิปชำระเงินเรียบร้อยแล้ว</h4>
-          <p class="text-secondary mb-3 fs-6">
-            รายการทีมทั้งหมดที่คุณได้ทำรายการยืนยันสลิปชำระเงิน
-          </p>
+      Swal.fire({
+        title: 'ยืนยันการแก้ไข?',
+        text: "ข้อมูลจะถูกบันทึกเป็นปี ค.ศ. ตามระบบฐานข้อมูล",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1a237e',
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async () => {
+          const updatedData = [];
+          inputs.forEach(input => {
+            if (input.readOnly || input.disabled) return;   // ส่งเฉพาะช่องที่เปิดให้แก้ไข
+            const idx = input.getAttribute('data-index');
+            if (idx !== null && fieldMapping[idx]) {
+              let finalValue = input.value;
 
-          <div class="p-3 bg-light rounded-3 text-start mb-3 w-100 border">
-            <div class="small text-muted mb-2">
-              <strong><i class="fa-solid fa-list-check me-1"></i> รายการทีมและสถานะการชำระเงิน (${selectedTeamsList ? selectedTeamsList.length : 1} ทีม) :</strong>
-            </div>
-            <div class="list-group list-group-flush rounded-2 border">
-              ${teamsListHtml}
-            </div>
-          </div>
-          <div class="text-primary small fw-medium">
-            <i class="fa-solid fa-circle-info me-1"></i> ท่านสามารถปิดหน้าต่างเบราว์เซอร์นี้ได้ทันที
-          </div>
-        </div>
-      `;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+              if (input.type === "date" && finalValue !== "") {
+                let dateParts = finalValue.split('-');
+                if (dateParts.length === 3) {
+                  finalValue = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                }
+              }
+              
+              updatedData.push({ 
+                key: fieldMapping[idx].key, 
+                value: finalValue 
+              });
+            }
+          });
 
-    function copyContactToRecipient() {
-      const copyCheck = document.getElementById('copyContactInfo');
-      const contactName = document.getElementById('contactName')?.value || '';
-      const contactPhone = document.getElementById('contactPhone')?.value || '';
+          try {
+            const res = await withTimeout(apiCall("updateData", { 
+              teamId: currentTeamId, 
+              updatedValues: updatedData,
+              email: loggedEmail
+            }), 90000);
+            return (res === undefined || res === null) ? '❌ ไม่ได้รับผลตอบกลับจากเซิร์ฟเวอร์' : res;
+          } catch (err) {
+            // หยุดหมุน และแจ้งในหน้าต่างเดิม ให้กดบันทึกซ้ำหรือยกเลิกได้
+            Swal.showValidationMessage(`${err.message} — ข้อมูลอาจบันทึกแล้ว กรุณาเลือก Team ID ใหม่เพื่อตรวจสอบ`);
+            return false;
+          }
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const resText = typeof result.value === 'string' ? result.value : (result.value && result.value.error) || "";
+          const isSuccess = resText.includes("✅");
 
-      const recipientNameInput = document.getElementById('recipientName');
-      const recipientPhoneInput = document.getElementById('recipientPhone');
-      if (copyCheck && copyCheck.checked) {
-        if (recipientNameInput) recipientNameInput.value = contactName;
-        if (recipientPhoneInput) recipientPhoneInput.value = contactPhone;
-      }
+          Swal.fire({ 
+            icon: isSuccess ? 'success' : 'error', 
+            title: isSuccess ? 'สำเร็จ!' : 'ข้อผิดพลาด', 
+            text: resText 
+          }).then(() => {
+            if (isSuccess) {
+              loadTeamData(); 
+            }
+          });
+        }
+      }).catch(err => {
+        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: (err && err.message) || String(err) });
+      });
     }
   </script>
-  <div class="version-badge-floating">
-    <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.7.0</span>
-  </div>
 </body>
 </html>
