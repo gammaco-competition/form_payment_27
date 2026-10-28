@@ -115,6 +115,22 @@
     .upload-zone.has-file { border-style: solid; }
     .upload-zone.invalid { border-color: #dc3545; background: #fff5f5; }
     .slip-name { font-size: .85rem; color: var(--primary-green); font-weight: 600; margin-top: 8px; word-break: break-all; }
+    /* Combobox ชื่อบริษัท */
+    .cbx { position: relative; }
+    .cbx-input { padding-right: 36px; }
+    .cbx-input.is-valid { background-image: none; border-color: var(--primary-green); }
+    .cbx-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: 0; background: #e9ecef; color: #555; width: 24px; height: 24px; border-radius: 50%; font-size: .75rem; line-height: 1; }
+    .cbx-list { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 60; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.12); }
+    .cbx-item { padding: 9px 12px; cursor: pointer; border-bottom: 1px solid #f2f2f2; }
+    .cbx-item:last-child { border-bottom: 0; }
+    .cbx-item:hover, .cbx-item.active { background: #eef7f1; }
+    .cbx-name { font-size: .92rem; color: var(--text-dark); }
+    .cbx-sub { font-size: .75rem; color: var(--text-muted); }
+    .cbx-item mark { background: #fff1a8; padding: 0; border-radius: 2px; }
+    .cbx-empty { padding: 12px; font-size: .85rem; color: var(--text-muted); }
+    .cbx-more { padding: 8px 12px; font-size: .75rem; color: var(--text-muted); background: #fafafa; }
+    .cbx .d-none { display: none !important; }
+    .cbx-hint { font-size: .75rem; color: var(--text-muted); margin-top: 4px; }
     .preview-img { max-width: 100%; max-height: 250px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 15px; }
     .btn-submit {
       background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-dark) 100%);
@@ -858,6 +874,13 @@
       }
     }
 
+    /* ---------- ชื่อบริษัท: Combobox พิมพ์ค้นหาแล้วเลือก ---------- */
+    function activeCompanies() {
+      const docTypeEl = document.querySelector('input[name="docType"]:checked');
+      const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
+      return (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
+    }
+
     function onTaxHistoryChange() {
       const docTypeEl = document.querySelector('input[name="docType"]:checked');
       const docType = docTypeEl ? docTypeEl.value : 'ไม่ต้องการ';
@@ -867,33 +890,179 @@
       const companyContainer = document.getElementById('companyContainer');
       const taxIdInput = document.getElementById('taxId');
       const taxAddressInput = document.getElementById('taxAddress');
-
       if (!companyContainer) return;
 
-      const activeCompaniesData = (docType === 'ใบเสร็จรับเงิน') ? receiptCompaniesData : taxCompaniesData;
-
       if (taxHistory === 'เคย') {
-        // สร้าง Dropdown เฉพาะถ้ายังไม่มี <select> อยู่ใน Container
-        const existingSelect = document.getElementById('taxCompanySelect');
-        if (!existingSelect) {
-          let selectHTML = `<select id="taxCompanySelect" class="form-select rounded-3" onchange="onTaxCompanySelectChange(this.value)">
-                              <option value="" selected>-- เลือกชื่อบริษัท / หน่วยงาน --</option>`;
-          if (activeCompaniesData && activeCompaniesData.length > 0) {
-            activeCompaniesData.forEach((item, index) => {
-              selectHTML += `<option value="${index}">${esc(item.companyName)}</option>`;
-            });
-          }
-          selectHTML += `</select>`;
-          companyContainer.innerHTML = selectHTML;
+        // สร้างใหม่เมื่อยังไม่มี หรือเปลี่ยนประเภทเอกสาร (ใบกำกับภาษี ↔ ใบเสร็จรับเงิน ใช้รายชื่อคนละชีต)
+        if (!document.getElementById('taxCompanySearch') || companyContainer.dataset.src !== docType) {
+          companyContainer.dataset.src = docType;
+          const total = activeCompanies().length;
+          companyContainer.innerHTML = `
+            <div class="cbx" id="companyCombo">
+              <input type="text" id="taxCompanySearch" class="form-control rounded-3 cbx-input"
+                     placeholder="🔍 พิมพ์ค้นหาชื่อบริษัท / หน่วยงาน" autocomplete="off" spellcheck="false"
+                     role="combobox" aria-expanded="false" aria-controls="companyList">
+              <button type="button" class="cbx-clear d-none" id="taxCompanyClear" aria-label="ล้าง">✕</button>
+              <div class="cbx-list d-none" id="companyList" role="listbox"></div>
+              <input type="hidden" id="taxCompanySelect" value="">
+            </div>
+            <div class="cbx-hint">มีทั้งหมด ${total} รายการ · พิมพ์บางส่วนของชื่อ หรือเลข 4 ตัวท้ายของเลขผู้เสียภาษี</div>`;
           if (taxIdInput) taxIdInput.readOnly = true;
           if (taxAddressInput) taxAddressInput.readOnly = true;
           onTaxCompanySelectChange('');
+          initCompanyCombo();
         }
       } else {
-        // หากเปลี่ยนเป็น "ไม่เคย" ให้เปลี่ยนช่องเป็น Input ข้อความปกติ
+        // "ไม่เคย" → ช่องกรอกชื่อเอง
+        delete companyContainer.dataset.src;
         companyContainer.innerHTML = `<input type="text" id="taxCompanyInput" class="form-control rounded-3" placeholder="ระบุชื่อหน่วยงาน / สถาบัน">`;
-        if (taxIdInput) taxIdInput.readOnly = false;
-        if (taxAddressInput) taxAddressInput.readOnly = false;
+        if (taxIdInput) { taxIdInput.readOnly = false; taxIdInput.value = ''; }
+        if (taxAddressInput) { taxAddressInput.readOnly = false; taxAddressInput.value = ''; }
+      }
+    }
+
+    const CBX_MAX_SHOW = 50;
+    const cbxNorm = s => String(s || '').toLowerCase().replace(/[\s.,()\-_/\\'"]+/g, '');
+
+    function initCompanyCombo() {
+      const input = document.getElementById('taxCompanySearch');
+      const list = document.getElementById('companyList');
+      const hidden = document.getElementById('taxCompanySelect');
+      const clearBtn = document.getElementById('taxCompanyClear');
+      if (!input || !list) return;
+      let results = [];
+      let activeIdx = -1;
+
+      const open = () => { list.classList.remove('d-none'); input.setAttribute('aria-expanded', 'true'); };
+      const close = () => { list.classList.add('d-none'); input.setAttribute('aria-expanded', 'false'); activeIdx = -1; };
+
+      const highlight = (name, tokens) => {
+        // ไฮไลต์คำค้นแรกที่พบในชื่อ (เทียบแบบไม่สนตัวพิมพ์)
+        const lower = name.toLowerCase();
+        for (const t of tokens) {
+          const i = t ? lower.indexOf(t) : -1;
+          if (i >= 0) return esc(name.slice(0, i)) + '<mark>' + esc(name.slice(i, i + t.length)) + '</mark>' + esc(name.slice(i + t.length));
+        }
+        return esc(name);
+      };
+
+      const render = () => {
+        const data = activeCompanies();
+        const q = input.value.trim();
+        const tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+        const nTokens = tokens.map(cbxNorm).filter(Boolean);
+        const digits = q.replace(/\D/g, '');
+
+        results = [];
+        data.forEach((c, idx) => {
+          if (!nTokens.length) { results.push(idx); return; }
+          const name = cbxNorm(c.companyName);
+          const byName = nTokens.every(t => name.includes(t));
+          const byTax = digits.length >= 3 && digits === q.replace(/\s/g, '') &&
+                        String(c.taxId || '').replace(/\D/g, '').endsWith(digits);
+          if (byName || byTax) results.push(idx);
+        });
+
+        if (!results.length) {
+          list.innerHTML = `
+            <div class="cbx-empty">
+              ไม่พบ "${esc(q)}" ในรายชื่อที่เคยออกเอกสาร
+              <button type="button" class="btn btn-sm btn-outline-success mt-2 w-100" id="cbxManual">
+                <i class="fa-solid fa-pen me-1"></i> กรอกข้อมูลบริษัทเอง (ไม่เคยออกเอกสาร)
+              </button>
+            </div>`;
+          document.getElementById('cbxManual').onmousedown = e => {
+            e.preventDefault();
+            const typed = input.value.trim();
+            document.getElementById('historyNo').checked = true;
+            onTaxHistoryChange();
+            const manual = document.getElementById('taxCompanyInput');
+            if (manual) { manual.value = typed; manual.focus(); }
+          };
+          activeIdx = -1;
+          open();
+          return;
+        }
+
+        const shown = results.slice(0, CBX_MAX_SHOW);
+        list.innerHTML = shown.map((idx, i) => {
+          const c = data[idx];
+          return `<div class="cbx-item${i === activeIdx ? ' active' : ''}" role="option" data-idx="${idx}">
+                    <div class="cbx-name">${highlight(c.companyName, tokens)}</div>
+                    ${c.taxId ? `<div class="cbx-sub">เลขผู้เสียภาษี ${esc(c.taxId)}</div>` : ''}
+                  </div>`;
+        }).join('') + (results.length > CBX_MAX_SHOW
+          ? `<div class="cbx-more">แสดง ${CBX_MAX_SHOW} จาก ${results.length} รายการ · พิมพ์เพิ่มเพื่อค้นหาให้แคบลง</div>` : '');
+        open();
+      };
+
+      const choose = (idx) => {
+        const c = activeCompanies()[idx];
+        if (!c) return;
+        input.value = c.companyName;
+        hidden.value = String(idx);
+        input.classList.add('is-valid');
+        clearBtn.classList.remove('d-none');
+        onTaxCompanySelectChange(String(idx));
+        close();
+      };
+
+      const unselect = () => {
+        if (hidden.value !== '') {
+          hidden.value = '';
+          input.classList.remove('is-valid');
+          onTaxCompanySelectChange('');
+        }
+      };
+
+      input.addEventListener('focus', () => { activeIdx = -1; render(); });
+      input.addEventListener('input', () => {
+        unselect();
+        clearBtn.classList.toggle('d-none', !input.value);
+        activeIdx = -1;
+        render();
+      });
+      input.addEventListener('keydown', e => {
+        const n = Math.min(results.length, CBX_MAX_SHOW);
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (list.classList.contains('d-none')) render(); activeIdx = Math.min(activeIdx + 1, n - 1); render(); scrollActive(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); render(); scrollActive(); }
+        else if (e.key === 'Enter') {
+          if (!list.classList.contains('d-none')) {
+            e.preventDefault();   // ไม่ให้ Enter ส่งฟอร์ม
+            if (activeIdx >= 0 && results[activeIdx] !== undefined) choose(results[activeIdx]);
+            else if (results.length === 1) choose(results[0]);
+          }
+        }
+        else if (e.key === 'Escape') close();
+      });
+      input.addEventListener('blur', () => setTimeout(() => {
+        close();
+        // พิมพ์ชื่อตรงกับรายการพอดีแต่ไม่ได้กดเลือก → เลือกให้
+        if (hidden.value === '' && input.value.trim()) {
+          const q = cbxNorm(input.value);
+          const exact = activeCompanies().map((c, i) => [c, i]).filter(([c]) => cbxNorm(c.companyName) === q);
+          if (exact.length === 1) choose(exact[0][1]);
+        }
+      }, 150));
+      // ใช้ mousedown (ไม่ใช่ click) เพื่อเลือกได้ก่อนช่องค้นหาเสีย focus
+      list.addEventListener('mousedown', e => {
+        const item = e.target.closest('.cbx-item');
+        if (!item) return;
+        e.preventDefault();
+        choose(Number(item.dataset.idx));
+      });
+      clearBtn.addEventListener('mousedown', e => {
+        e.preventDefault();
+        input.value = '';
+        clearBtn.classList.add('d-none');
+        unselect();
+        input.focus();
+        render();
+      });
+
+      function scrollActive() {
+        const el = list.querySelector('.cbx-item.active');
+        if (el) el.scrollIntoView({ block: 'nearest' });
       }
     }
 
@@ -1031,7 +1200,7 @@
         if (isEver) {
           const selectEl = document.getElementById('taxCompanySelect');
           if (!selectEl || selectEl.value === '') {
-            Swal.fire('คำเตือน', 'กรุณาเลือกชื่อบริษัท / หน่วยงาน', 'warning');
+            Swal.fire('คำเตือน', 'กรุณาพิมพ์ค้นหาและเลือกชื่อบริษัท / หน่วยงานจากรายการ', 'warning');
             return;
           }
         } else {
@@ -1243,7 +1412,7 @@
   </script>
   <div class="version-badge-floating">
     <i class="fa-solid fa-code-branch"></i>
-    <span>Ver. 9.7.0</span>
+    <span>Ver. 9.8.0</span>
   </div>
 </body>
 </html>
